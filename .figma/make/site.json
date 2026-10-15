@@ -1,0 +1,10 @@
+{
+  "description": "Discover and manage music events in Rennes with a user-friendly calendar interface, tailored for students to easily find and add their favorite concerts.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
