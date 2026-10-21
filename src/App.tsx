@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 type IconProps = {
   className?: string;
@@ -63,13 +63,59 @@ function HeartIcon({ className = "h-5 w-5" }: IconProps) {
   );
 }
 
-const subscriptions = [
-  { name: "Rock", color: "#ef5a5a", checked: true },
-  { name: "Electro", color: "#4e8ff7", checked: true },
-  { name: "Jazz", color: "#f3c84b", checked: true },
-  { name: "Pop", color: "#a86ae3", checked: true },
-  { name: "Reggae", color: "#55ae78", checked: false },
+function CloseIcon({ className = "h-3 w-3" }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ---------- Données ---------- */
+
+const tags = [
+  { id: "rock", name: "Rock", color: "#ef5a5a" },
+  { id: "electro", name: "Electro", color: "#4e8ff7" },
+  { id: "jazz", name: "Jazz", color: "#f3c84b" },
+  { id: "pop", name: "Pop", color: "#a86ae3" },
+  { id: "reggae", name: "Reggae", color: "#55ae78" },
 ];
+
+type CreatorKind = "Artiste" | "Bar" | "Salle";
+
+type Creator = {
+  id: string;
+  name: string;
+  kind: CreatorKind;
+  mutuals?: number;
+};
+
+const creators: Creator[] = [
+  { id: "etage", name: "L'Étage", kind: "Salle" },
+  { id: "neon", name: "Neon Pulse", kind: "Artiste" },
+  { id: "gilbert", name: "Chez Gilbert", kind: "Bar" },
+  { id: "lola", name: "Lola Vance", kind: "Artiste" },
+  { id: "antipode", name: "L'Antipode", kind: "Salle" },
+];
+
+const suggestedCreators: Creator[] = [
+  { id: "ubu", name: "L'Ubu", kind: "Salle", mutuals: 4 },
+  { id: "moon", name: "Møon", kind: "Artiste", mutuals: 3 },
+  { id: "barhic", name: "Le Bar'Hic", kind: "Bar", mutuals: 2 },
+];
+
+const creatorById: Record<string, Creator> = Object.fromEntries(creators.map((c) => [c.id, c]));
+
+function initials(name: string) {
+  return name
+    .replace(/[^\p{L}\s]/gu, "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
 
 const days = [
   { name: "Lundi", date: "12" },
@@ -87,22 +133,26 @@ type Event = {
   day: number;
   hour: string;
   title?: string;
+  creator?: string;
+  tag?: string;
   color?: string;
   textColor?: string;
   multiple?: boolean;
 };
 
 const events: Event[] = [
-  { day: 0, hour: "19h00", title: "The Velvet Club", color: "#f9dedf", textColor: "#a82f39" },
-  { day: 1, hour: "12h00", title: "Jazz à midi", color: "#fff1bd", textColor: "#8b6710" },
-  { day: 1, hour: "21h00", title: "Neon Pulse", color: "#dce9ff", textColor: "#2866c3" },
-  { day: 2, hour: "18h00", title: "Open Air", color: "#dff3e7", textColor: "#277249" },
-  { day: 3, hour: "20h00", title: "Pop Session", color: "#eee1f8", textColor: "#7140a0" },
+  { day: 0, hour: "19h00", title: "The Velvet Club", creator: "etage", tag: "rock", color: "#f9dedf", textColor: "#a82f39" },
+  { day: 1, hour: "12h00", title: "Jazz à midi", creator: "gilbert", tag: "jazz", color: "#fff1bd", textColor: "#8b6710" },
+  { day: 1, hour: "21h00", title: "Neon Pulse", creator: "neon", tag: "electro", color: "#dce9ff", textColor: "#2866c3" },
+  { day: 2, hour: "18h00", title: "Open Air", creator: "antipode", tag: "reggae", color: "#dff3e7", textColor: "#277249" },
+  { day: 3, hour: "20h00", title: "Pop Session", creator: "lola", tag: "pop", color: "#eee1f8", textColor: "#7140a0" },
   { day: 4, hour: "20h00", multiple: true },
-  { day: 5, hour: "16h00", title: "Rock Garden", color: "#f9dedf", textColor: "#a82f39" },
-  { day: 5, hour: "22h00", title: "Electric Night", color: "#dce9ff", textColor: "#2866c3" },
-  { day: 6, hour: "11h00", title: "Sunday Groove", color: "#dff3e7", textColor: "#277249" },
+  { day: 5, hour: "16h00", title: "Rock Garden", creator: "etage", tag: "rock", color: "#f9dedf", textColor: "#a82f39" },
+  { day: 5, hour: "22h00", title: "Electric Night", creator: "neon", tag: "electro", color: "#dce9ff", textColor: "#2866c3" },
+  { day: 6, hour: "11h00", title: "Sunday Groove", creator: "antipode", tag: "reggae", color: "#dff3e7", textColor: "#277249" },
 ];
+
+/* ---------- Composants ---------- */
 
 function CalendarEvent({ event }: { event: Event }) {
   if (event.multiple) {
@@ -147,11 +197,24 @@ type EventCardProps = {
   image: string;
   imageAlt: string;
   accent: string;
+  creatorId?: string;
   focused?: boolean;
   onClick?: () => void;
 };
 
-function EventCard({ title, tag, time, description, image, imageAlt, accent, focused = false, onClick }: EventCardProps) {
+function EventCard({
+  title,
+  tag,
+  time,
+  description,
+  image,
+  imageAlt,
+  accent,
+  creatorId,
+  focused = false,
+  onClick,
+}: EventCardProps) {
+  const creator = creatorId ? creatorById[creatorId] : undefined;
   return (
     <article
       className={`relative grid h-[322px] shrink-0 grid-cols-[52%_48%] overflow-hidden rounded-2xl border bg-white transition ${
@@ -170,6 +233,16 @@ function EventCard({ title, tag, time, description, image, imageAlt, accent, foc
             {tag}
           </span>
           <h3 className="mt-4 text-[25px] font-bold leading-tight tracking-[-0.025em] text-[#22262c]">{title}</h3>
+
+          {creator && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#eef0f2] text-[10px] font-bold text-[#5b626c]">
+                {initials(creator.name)}
+              </span>
+              <span className="text-[13px] font-semibold text-[#343940]">{creator.name}</span>
+            </div>
+          )}
+
           <div className="mt-4 flex items-center gap-2 text-[14px] font-semibold text-[#4a5059]">
             <svg className="h-[18px] w-[18px] text-[#8a9099]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
@@ -351,9 +424,9 @@ function EventFormModal({ onClose }: { onClose: () => void }) {
               <fieldset>
                 <legend className="text-[12px] font-bold text-[#4c535c]">Genre principal</legend>
                 <div className="mt-2 grid grid-cols-5 gap-2">
-                  {subscriptions.map((genre) => (
-                    <label key={genre.name} className="cursor-pointer">
-                      <input className="peer sr-only" type="radio" name="genre" defaultChecked={genre.name === "Rock"} />
+                  {tags.map((genre) => (
+                    <label key={genre.id} className="cursor-pointer">
+                      <input className="peer sr-only" type="radio" name="genre" defaultChecked={genre.id === "rock"} />
                       <span className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-[#e1e3e6] text-[10px] font-bold text-[#5e646d] transition peer-checked:border-[#ff9ba7] peer-checked:bg-[#fff4f5] peer-checked:text-[#d93e50]">
                         <i className="h-2 w-2 rounded-full" style={{ backgroundColor: genre.color }} />
                         {genre.name}
@@ -413,12 +486,41 @@ function EventFormModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/* ---------- App ---------- */
+
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<1 | 2 | 3 | 4 | 5>(4);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
+
+  const toggleTag = (id: string) =>
+    setActiveTags((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+
+  const matchesQuery = (e: Event) => {
+    if (!terms.length || e.multiple) return true;
+    const creatorName = e.creator ? creatorById[e.creator]?.name ?? "" : "";
+    const haystack = `${e.title ?? ""} #${e.tag ?? ""} ${creatorName}`.toLowerCase();
+    return terms.every((t) => haystack.includes(t));
+  };
+
+  const searchedTags = useMemo(
+    () => tags.filter((t) => terms.includes(`#${t.id}`)),
+    [terms]
+  );
+
+  const tagFilterActive = (event: Event): boolean => {
+    if (event.multiple) return true;
+    const active = [...activeTags, ...searchedTags.map((t) => t.id)];
+    if (active.length === 0) return true;
+    return active.includes(event.tag ?? "");
+  };
 
   return (
     <div className="h-screen min-h-[720px] overflow-hidden bg-[#f7f8fa] text-[#20242b]">
-      <header className="grid h-[74px] grid-cols-[minmax(310px,1fr)_minmax(360px,560px)_minmax(420px,1fr)] items-center border-b border-[#e5e7eb] bg-white px-6">
+      {/* HEADER plus haut pour contenir recherche + filtres sans chevauchement */}
+      <header className="grid h-[124px] grid-cols-[1fr_auto_1fr] items-center border-b border-[#e5e7eb] bg-white px-6">
         <div className="flex min-w-0 items-center gap-3.5">
           <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#555d68] transition-colors hover:bg-[#f3f4f6]" aria-label="Ouvrir le menu">
             <MenuIcon />
@@ -434,18 +536,80 @@ export default function App() {
           <span className="truncate text-[15px] font-bold tracking-[0.045em]">AGENDA MUSIQUE - RENNES</span>
         </div>
 
-        <label className="mx-5 flex h-11 items-center gap-3 rounded-xl border border-[#e2e5e9] bg-[#f8f9fa] px-4 text-[#8b929c] transition focus-within:border-[#ff8a98] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff4e64]/5">
-          <SearchIcon className="h-[19px] w-[19px] shrink-0" />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-[14px] text-[#30353b] outline-none placeholder:text-[#9ba1aa]"
-            placeholder="#rock #concert #electro #gratuit..."
-            aria-label="Rechercher par hashtags"
-          />
-        </label>
+        <div className="mx-5 flex flex-col gap-2">
+          <label className="flex h-11 items-center gap-3 rounded-xl border border-[#e2e5e9] bg-[#f8f9fa] px-4 text-[#8b929c] transition focus-within:border-[#ff8a98] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff4e64]/5">
+            <SearchIcon className="h-[19px] w-[19px] shrink-0" />
+            <input
+              className="min-w-0 flex-1 bg-transparent text-[14px] text-[#30353b] outline-none placeholder:text-[#9ba1aa]"
+              placeholder="#rock #électro ou nom d'un créateur..."
+              aria-label="Rechercher par tag ou par créateur"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+
+          {/* Zone de filtres compacte, sur une seule ligne si possible */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#9ba1aa]">
+              Tags
+            </span>
+            {tags.map((tag) => {
+              const checked = activeTags.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTag(tag.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+                    checked
+                      ? "border-transparent text-white shadow-sm"
+                      : "border-[#e2e5e9] bg-white text-[#555c65] hover:bg-[#f6f7f8]"
+                  }`}
+                  style={checked ? { backgroundColor: tag.color } : undefined}
+                >
+                  <i
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: checked ? "rgba(255,255,255,0.9)" : tag.color }}
+                  />
+                  #{tag.id}
+                  {checked && <CloseIcon className="ml-0.5 h-2.5 w-2.5" />}
+                </button>
+              );
+            })}
+            {searchedTags.length > 0 && (
+              <>
+                <span className="mx-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#9ba1aa]">
+                  Cherché
+                </span>
+                {searchedTags.map((tag) => (
+                  <span
+                    key={`search-${tag.id}`}
+                    className="inline-flex items-center gap-1 rounded-full bg-[#fff2f4] px-2.5 py-1 text-[11px] font-bold text-[#dd4052] ring-1 ring-[#ffd2d8]"
+                  >
+                    <i className="h-2 w-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                    #{tag.id}
+                  </span>
+                ))}
+              </>
+            )}
+            {(activeTags.length > 0 || searchedTags.length > 0) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTags([]);
+                  setQuery("");
+                }}
+                className="ml-1 text-[11px] font-semibold text-[#8a9099] underline-offset-2 hover:text-[#dd4052] hover:underline"
+              >
+                Tout effacer
+              </button>
+            )}
+          </div>
+        </div>
 
         <div className="flex items-center justify-end gap-2.5">
           <button onClick={() => setActiveScreen(5)} className="h-11 whitespace-nowrap rounded-xl bg-[#ff4e64] px-4 text-[13px] font-semibold text-white shadow-[0_5px_14px_rgba(255,78,100,0.23)] transition hover:bg-[#f23f56]">
-            +&nbsp; Ajouter un événement
+            +&nbsp; Ajouter
           </button>
           <button
             onClick={() => setActiveScreen(activeScreen === 4 ? 1 : 4)}
@@ -477,34 +641,50 @@ export default function App() {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-74px)] min-h-[646px]">
-        <aside className="w-[222px] shrink-0 border-r border-[#e5e7eb] bg-white px-6 py-7">
-          <h2 className="mb-6 text-[12px] font-bold uppercase tracking-[0.11em] text-[#7b828c]">Mes abonnements</h2>
-          <ul className="space-y-1.5">
-            {subscriptions.map((subscription) => (
-              <li key={subscription.name}>
-                <label className="group flex cursor-pointer items-center gap-3 rounded-lg px-1 py-2.5">
-                  <input className="peer sr-only" type="checkbox" defaultChecked={subscription.checked} />
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: subscription.color }}
-                  />
-                  <span className="flex-1 text-[14px] font-medium text-[#414750]">{subscription.name}</span>
-                  <span
-                    className="flex h-[18px] w-[18px] items-center justify-center rounded-[5px] border border-[#cfd4da] bg-white text-white transition peer-checked:border-transparent"
-                    style={subscription.checked ? { backgroundColor: subscription.color } : undefined}
-                    aria-hidden="true"
-                  >
-                    {subscription.checked && (
-                      <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
-                        <path d="m2.2 6.1 2.3 2.2 5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
+      <div className="flex h-[calc(100vh-124px)] min-h-[596px]">
+        {/* Sidebar : Découvrir remonte juste sous Mes abonnements */}
+        <aside className="flex w-[300px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6">
+            <section>
+              <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.11em] text-[#7b828c]">Mes abonnements</h2>
+              <ul className="space-y-1">
+                {creators.map((creator) => (
+                  <li key={creator.id} className="flex items-center gap-3 rounded-lg px-1 py-1.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eef0f2] text-[11px] font-bold text-[#5b626c]">
+                      {initials(creator.name)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-semibold text-[#414750]">{creator.name}</span>
+                      <span className="block text-[11px] text-[#8a9099]">{creator.kind}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="mt-6 rounded-xl border border-[#eef0f3] bg-[#fbfbfc] p-4">
+              <h2 className="text-[12px] font-bold uppercase tracking-[0.11em] text-[#7b828c]">Découvrir</h2>
+              <p className="mt-1 text-[11px] text-[#9298a0]">Populaires parmi tes abonnements</p>
+              <ul className="mt-3 space-y-3">
+                {suggestedCreators.map((creator) => (
+                  <li key={creator.id} className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eef0f2] text-[11px] font-bold text-[#5b626c]">
+                      {initials(creator.name)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-semibold text-[#414750]">{creator.name}</span>
+                      <span className="block truncate text-[11px] text-[#8a9099]">
+                        {creator.kind} · suivi par {creator.mutuals}
+                      </span>
+                    </span>
+                    <button className="shrink-0 rounded-lg border border-[#ffd2d8] bg-[#fff2f4] px-2.5 py-1.5 text-[11px] font-bold text-[#dd4052] transition hover:bg-[#ffe6ea]">
+                      Suivre
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
         </aside>
 
         {activeScreen === 4 ? (
@@ -543,14 +723,19 @@ export default function App() {
                 <span className="relative -top-[7px] bg-[#fbfbfc] pl-1 text-[10px] font-medium text-[#a0a6ae]">{hour}</span>
               </div>,
               ...days.map((day, dayIndex) => {
-                const event = events.find((item) => item.day === dayIndex && item.hour === hour);
+                const found = events.find((item) => item.day === dayIndex && item.hour === hour);
+                const event = found && tagFilterActive(found) ? found : undefined;
                 return (
                   <div
                     key={`${day.name}-${hour}`}
                     className={`min-h-0 border-r border-b border-[#eceef0] p-[3px] last:border-r-0 ${event ? "cursor-pointer" : ""}`}
                     onClick={() => event && setActiveScreen(event.multiple ? 2 : 3)}
                   >
-                    {event && <CalendarEvent event={event} />}
+                    {event && (
+                      <div className={`h-full transition-opacity ${matchesQuery(event) ? "" : "opacity-20"}`}>
+                        <CalendarEvent event={event} />
+                      </div>
+                    )}
                   </div>
                 );
               }),
@@ -595,6 +780,7 @@ export default function App() {
                   title="Festival Bars 'n Breizh"
                   tag="#ROCK"
                   time="20h30 - 23h30"
+                  creatorId="etage"
                   description="Une soirée électrique au cœur de Rennes avec trois groupes bretons. Guitares, énergie live et découvertes locales au programme."
                   accent="#e64857"
                   image="https://images.unsplash.com/photo-1473691955023-da1c49c95c78?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwY29uY2VydCUyMGNyb3dkJTIwc3RhZ2UlMjByZWQlMjBsaWdodHN8ZW58MXx8fHwxNzkyMDU2MTI1fDA&ixlib=rb-4.1.0&q=85&w=900"
@@ -604,6 +790,7 @@ export default function App() {
                   title="Jam Session Jazz"
                   tag="#JAZZ"
                   time="21h00 - 00h00"
+                  creatorId="gilbert"
                   description="Musiciens confirmés et jeunes talents se retrouvent pour une session libre, chaleureuse et pleine d'improvisations."
                   accent="#c29418"
                   image="https://images.unsplash.com/photo-1577042816206-2e85c23f2392?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxqYXp6JTIwYmFuZCUyMGxpdmUlMjBjb25jZXJ0JTIwYmx1ZSUyMHN0YWdlfGVufDF8fHx8MTc5MjA1NjEyNnww&ixlib=rb-4.1.0&q=85&w=900"
@@ -663,6 +850,16 @@ export default function App() {
                 <h2 id="event-detail-title" className="max-w-[490px] text-[36px] font-bold leading-[1.08] tracking-[-0.04em] text-[#20242a]">
                   Festival Bars 'n Breizh
                 </h2>
+
+                <div className="mt-4 flex items-center gap-2.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#eef0f2] text-[11px] font-bold text-[#5b626c]">
+                    {initials("L'Étage")}
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-semibold text-[#343940]">L'Étage</span>
+                    <span className="text-[11px] text-[#858b94]">Salle · Rennes</span>
+                  </div>
+                </div>
 
                 <div className="mt-7 space-y-4">
                   <div className="flex items-start gap-3">
