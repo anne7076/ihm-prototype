@@ -16,8 +16,8 @@ export type Tag = {
 
 export type Event = {
   id: string;
-  day: number;
-  hour: string;
+  day: number; // 0 = Lundi, 6 = Dimanche
+  hour: string; // ex: "19h00"
   title: string;
   creatorId?: string;
   tag: string;
@@ -27,6 +27,8 @@ export type Event = {
   timeRange: string;
   venueName: string;
   venueAddress: string;
+  lat: number;
+  lng: number;
   officialSiteUrl?: string;
   ticketingUrl?: string;
   imageUrl: string;

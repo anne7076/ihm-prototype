@@ -2,7 +2,7 @@ import initSqlJs, { type Database } from "sql.js";
 import type { Tag, Creator, Event } from "../types";
 import { initialTags, initialCreators, initialEvents } from "./seed";
 
-const STORAGE_KEY = "ihm_rennes_sqlite_db";
+const STORAGE_KEY = "ihm_rennes_sqlite_db_v2";
 
 let dbInstance: Database | null = null;
 let initPromise: Promise<Database> | null = null;
@@ -10,7 +10,11 @@ let initPromise: Promise<Database> | null = null;
 function saveDatabaseToLocalStorage(db: Database) {
   try {
     const data = db.export();
-    const binaryString = Array.from(data, (b) => String.fromCharCode(b)).join("");
+    let binaryString = "";
+    const len = data.byteLength;
+    for (let i = 0; i < len; i++) {
+      binaryString += String.fromCharCode(data[i]);
+    }
     const base64 = btoa(binaryString);
     localStorage.setItem(STORAGE_KEY, base64);
   } catch (error) {
@@ -33,8 +37,9 @@ export async function getDatabase(): Promise<Database> {
     if (saved) {
       try {
         const binaryString = atob(saved);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
         db = new SQL.Database(bytes);
@@ -75,6 +80,8 @@ export async function getDatabase(): Promise<Database> {
         timeRange TEXT NOT NULL,
         venueName TEXT NOT NULL,
         venueAddress TEXT NOT NULL,
+        lat REAL NOT NULL,
+        lng REAL NOT NULL,
         officialSiteUrl TEXT,
         ticketingUrl TEXT,
         imageUrl TEXT NOT NULL,
@@ -85,7 +92,7 @@ export async function getDatabase(): Promise<Database> {
       );
     `);
 
-    // Vérifier si la base doit être seedée
+    // Vérifier si la base doit être peuplée
     const tagCountRes = db.exec("SELECT COUNT(*) FROM tags");
     const count = (tagCountRes[0]?.values[0]?.[0] as number) ?? 0;
 
@@ -108,9 +115,9 @@ export async function getDatabase(): Promise<Database> {
       const insertEvent = db.prepare(`
         INSERT INTO events (
           id, day, hour, title, creatorId, tag, description, color, textColor,
-          timeRange, venueName, venueAddress, officialSiteUrl, ticketingUrl,
+          timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
           imageUrl, multiple, isFavorite
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const e of initialEvents) {
@@ -127,6 +134,8 @@ export async function getDatabase(): Promise<Database> {
           e.timeRange,
           e.venueName,
           e.venueAddress,
+          e.lat,
+          e.lng,
           e.officialSiteUrl ?? null,
           e.ticketingUrl ?? null,
           e.imageUrl,
@@ -176,7 +185,7 @@ export async function getAllEvents(): Promise<Event[]> {
   const res = db.exec(`
     SELECT
       id, day, hour, title, creatorId, tag, description, color, textColor,
-      timeRange, venueName, venueAddress, officialSiteUrl, ticketingUrl,
+      timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
       imageUrl, multiple, isFavorite
     FROM events
     ORDER BY day, hour
@@ -195,11 +204,13 @@ export async function getAllEvents(): Promise<Event[]> {
     timeRange: row[9] as string,
     venueName: row[10] as string,
     venueAddress: row[11] as string,
-    officialSiteUrl: (row[12] as string) || undefined,
-    ticketingUrl: (row[13] as string) || undefined,
-    imageUrl: row[14] as string,
-    multiple: Boolean(row[15]),
-    isFavorite: Boolean(row[16]),
+    lat: (row[12] as number) ?? 48.1113,
+    lng: (row[13] as number) ?? -1.6800,
+    officialSiteUrl: (row[14] as string) || undefined,
+    ticketingUrl: (row[15] as string) || undefined,
+    imageUrl: row[16] as string,
+    multiple: Boolean(row[17]),
+    isFavorite: Boolean(row[18]),
   }));
 }
 
@@ -242,9 +253,9 @@ export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise
     `
     INSERT INTO events (
       id, day, hour, title, creatorId, tag, description, color, textColor,
-      timeRange, venueName, venueAddress, officialSiteUrl, ticketingUrl,
+      timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
       imageUrl, multiple, isFavorite
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
     `,
     [
       id,
@@ -259,6 +270,8 @@ export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise
       event.timeRange,
       event.venueName,
       event.venueAddress,
+      event.lat,
+      event.lng,
       event.officialSiteUrl ?? null,
       event.ticketingUrl ?? null,
       event.imageUrl,

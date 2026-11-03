@@ -8,15 +8,24 @@ interface EventFormModalProps {
   onSubmit: (event: Omit<Event, "id" | "isFavorite">) => Promise<void>;
 }
 
+// Emplacements connus à Rennes avec coordonnées réelles
+const KNOWN_VENUES = [
+  { name: "L'Ubu", address: "1 Rue Saint-Hélier, 35000 Rennes", lat: 48.1077, lng: -1.6738 },
+  { name: "L'Étage", address: "1 Esplanade Charles de Gaulle, 35000 Rennes", lat: 48.1054, lng: -1.6775 },
+  { name: "L'Antipode", address: "75 Avenue Jules Maniez, 35000 Rennes", lat: 48.0988, lng: -1.7126 },
+  { name: "Chez Gilbert", address: "Place Sainte-Anne, 35000 Rennes", lat: 48.1144, lng: -1.6808 },
+  { name: "Le Bar'Hic", address: "24 Place des Lices, 35000 Rennes", lat: 48.1128, lng: -1.6839 },
+  { name: "Parc du Thabor", address: "Place Saint-Melaine, 35000 Rennes", lat: 48.1145, lng: -1.6702 },
+];
+
 export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps) {
   const [title, setTitle] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("rock");
   const [secondaryTags, setSecondaryTags] = useState("");
-  const [date, setDate] = useState("16/10/2026");
+  const [dayIndex, setDayIndex] = useState<number>(4); // Vendredi par défaut
   const [startTime, setStartTime] = useState("20h30");
   const [endTime, setEndTime] = useState("23h30");
-  const [venueName, setVenueName] = useState("L'Ubu");
-  const [venueAddress, setVenueAddress] = useState("1 Rue Saint-Hélier, Rennes");
+  const [venueIndex, setVenueIndex] = useState<number>(0);
   const [siteUrl, setSiteUrl] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,9 +37,10 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
     setIsSubmitting(true);
     try {
       const tagObj = tags.find((t) => t.id === selectedTag) || tags[0];
+      const venue = KNOWN_VENUES[venueIndex];
 
       await onSubmit({
-        day: 4, // Default to Friday
+        day: Number(dayIndex),
         hour: startTime.split("h")[0] ? `${startTime.split("h")[0]}h00` : "20h00",
         title: title.trim(),
         tag: selectedTag,
@@ -38,8 +48,10 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
         color: `${tagObj.color}25`,
         textColor: tagObj.color,
         timeRange: `${startTime} - ${endTime}`,
-        venueName: venueName.trim() || "Lieu à Rennes",
-        venueAddress: venueAddress.trim() || "Rennes",
+        venueName: venue.name,
+        venueAddress: venue.address,
+        lat: venue.lat,
+        lng: venue.lng,
         officialSiteUrl: siteUrl.trim() || undefined,
         imageUrl:
           "https://images.unsplash.com/photo-1473691955023-da1c49c95c78?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
@@ -55,7 +67,7 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/40" aria-hidden="true" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" aria-hidden="true" onClick={onClose} />
       <section
         className="fixed left-1/2 top-1/2 z-50 flex h-[750px] w-[1060px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.34)]"
         role="dialog"
@@ -130,13 +142,20 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
 
               <div className="grid grid-cols-[1.15fr_1fr_1fr] gap-3">
                 <label className="block text-[12px] font-bold text-[#4c535c]">
-                  Date
-                  <input
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                  Jour
+                  <select
+                    value={dayIndex}
+                    onChange={(e) => setDayIndex(Number(e.target.value))}
                     className={inputClass}
-                    placeholder="16/10/2026"
-                  />
+                  >
+                    <option value={0}>Lundi 12</option>
+                    <option value={1}>Mardi 13</option>
+                    <option value={2}>Mercredi 14</option>
+                    <option value={3}>Jeudi 15</option>
+                    <option value={4}>Vendredi 16</option>
+                    <option value={5}>Samedi 17</option>
+                    <option value={6}>Dimanche 18</option>
+                  </select>
                 </label>
                 <label className="block text-[12px] font-bold text-[#4c535c]">
                   Début
@@ -159,15 +178,20 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
               </div>
 
               <label className="block text-[12px] font-bold text-[#4c535c]">
-                Lieu à Rennes <span className="font-normal text-[#949aa2]">(adresse pour la carte)</span>
+                Lieu à Rennes <span className="font-normal text-[#949aa2]">(géolocalisé sur la carte)</span>
                 <span className="relative block">
                   <PinIcon className="absolute left-3.5 top-[21px] h-[17px] w-[17px] text-[#8b929b]" />
-                  <input
-                    value={venueAddress}
-                    onChange={(e) => setVenueAddress(e.target.value)}
+                  <select
+                    value={venueIndex}
+                    onChange={(e) => setVenueIndex(Number(e.target.value))}
                     className={`${inputClass} pl-10`}
-                    placeholder="L'Ubu, 1 Rue Saint-Hélier, Rennes"
-                  />
+                  >
+                    {KNOWN_VENUES.map((v, i) => (
+                      <option key={v.name} value={i}>
+                        {v.name} — {v.address}
+                      </option>
+                    ))}
+                  </select>
                 </span>
               </label>
 
@@ -218,7 +242,7 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="mt-2 min-h-[165px] flex-1 resize-none rounded-xl border border-[#dfe2e6] p-3.5 text-[13px] font-normal leading-relaxed outline-none placeholder:text-[#a3a8af] focus:border-[#ff8a98] focus:ring-4 focus:ring-[#ff4e64]/5"
-                  placeholder="Programmation, tarifs, informations pratiques..."
+                  placeholder="Programmation, artistes, tarifs, informations pratiques..."
                 />
               </label>
             </div>
@@ -237,7 +261,7 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
               disabled={isSubmitting}
               className="h-11 rounded-xl bg-[#ff4e64] px-6 text-[13px] font-bold text-white shadow-[0_6px_16px_rgba(255,78,100,0.24)] hover:bg-[#ed3f55] disabled:opacity-50"
             >
-              {isSubmitting ? "Enregistrement..." : "Publier dans l'agenda"}
+              {isSubmitting ? "Enregistrement dans SQLite..." : "Ajouter à l'agenda"}
             </button>
           </footer>
         </form>
