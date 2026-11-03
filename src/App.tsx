@@ -489,7 +489,7 @@ function EventFormModal({ onClose }: { onClose: () => void }) {
 /* ---------- App ---------- */
 
 export default function App() {
-  const [activeScreen, setActiveScreen] = useState<1 | 2 | 3 | 4 | 5>(4);
+  const [activeScreen, setActiveScreen] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [query, setQuery] = useState("");
 
@@ -541,7 +541,7 @@ export default function App() {
             <SearchIcon className="h-[19px] w-[19px] shrink-0" />
             <input
               className="min-w-0 flex-1 bg-transparent text-[14px] text-[#30353b] outline-none placeholder:text-[#9ba1aa]"
-              placeholder="#rock #électro ou nom d'un créateur..."
+              placeholder="#rock #electro ou nom d'un créateur..."
               aria-label="Rechercher par tag ou par créateur"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -609,7 +609,7 @@ export default function App() {
 
         <div className="flex items-center justify-end gap-2.5">
           <button onClick={() => setActiveScreen(5)} className="h-11 whitespace-nowrap rounded-xl bg-[#ff4e64] px-4 text-[13px] font-semibold text-white shadow-[0_5px_14px_rgba(255,78,100,0.23)] transition hover:bg-[#f23f56]">
-            +&nbsp; Ajouter
+            +&nbsp; Ajouter un événement
           </button>
           <button
             onClick={() => setActiveScreen(activeScreen === 4 ? 1 : 4)}
@@ -674,7 +674,7 @@ export default function App() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] font-semibold text-[#414750]">{creator.name}</span>
                       <span className="block truncate text-[11px] text-[#8a9099]">
-                        {creator.kind} · suivi par {creator.mutuals}
+                        {creator.kind} · suivi par {creator.mutuals} de vos abonnements
                       </span>
                     </span>
                     <button className="shrink-0 rounded-lg border border-[#ffd2d8] bg-[#fff2f4] px-2.5 py-1.5 text-[11px] font-bold text-[#dd4052] transition hover:bg-[#ffe6ea]">
