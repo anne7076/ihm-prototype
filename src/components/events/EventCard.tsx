@@ -6,12 +6,12 @@ export function CalendarEvent({ event }: { event: Event }) {
   if (event.multiple) {
     return (
       <div
-        className="group relative flex h-full w-full overflow-hidden rounded-[7px] shadow-[0_2px_8px_rgba(33,37,41,0.12)] ring-1 ring-black/5 transition hover:brightness-105"
+        className="group relative flex h-full w-full overflow-hidden rounded-[7px] shadow-[0_1px_4px_rgba(32,38,45,0.08)] ring-1 ring-black/5 transition hover:brightness-95"
         title={`${event.title} · Événements multiples`}
       >
-        <span className="h-full flex-1 bg-[#ef5a5a]" />
-        <span className="h-full flex-1 bg-[#4e8ff7]" />
-        <span className="h-full flex-1 bg-[#55ae78]" />
+        <span className="h-full flex-1 bg-[#f9dedf] border-r border-white/80" />
+        <span className="h-full flex-1 bg-[#dce9ff] border-r border-white/80" />
+        <span className="h-full flex-1 bg-[#dff3e7]" />
       </div>
     );
   }
