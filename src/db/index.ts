@@ -27,129 +27,134 @@ export async function getDatabase(): Promise<Database> {
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
-    const SQL = await initSqlJs({
-      locateFile: (file) => `/${file}`,
-    });
+    try {
+      const SQL = await initSqlJs({
+        locateFile: () => "/sql-wasm.wasm",
+      });
 
-    const saved = localStorage.getItem(STORAGE_KEY);
-    let db: Database;
+      const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+      let db: Database;
 
-    if (saved) {
-      try {
-        const binaryString = atob(saved);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
+      if (saved) {
+        try {
+          const binaryString = atob(saved);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          db = new SQL.Database(bytes);
+        } catch (err) {
+          console.warn("Échec du chargement du cache SQLite, réinitialisation:", err);
+          db = new SQL.Database();
         }
-        db = new SQL.Database(bytes);
-      } catch (err) {
-        console.warn("Échec du chargement du cache SQLite, réinitialisation:", err);
+      } else {
         db = new SQL.Database();
       }
-    } else {
-      db = new SQL.Database();
-    }
 
-    // Création des tables
-    db.run(`
-      CREATE TABLE IF NOT EXISTS tags (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        color TEXT NOT NULL
-      );
+      // Création des tables
+      db.run(`
+        CREATE TABLE IF NOT EXISTS tags (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          color TEXT NOT NULL
+        );
 
-      CREATE TABLE IF NOT EXISTS creators (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        kind TEXT NOT NULL,
-        mutuals INTEGER DEFAULT 0,
-        isFollowed INTEGER DEFAULT 0
-      );
+        CREATE TABLE IF NOT EXISTS creators (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          kind TEXT NOT NULL,
+          mutuals INTEGER DEFAULT 0,
+          isFollowed INTEGER DEFAULT 0
+        );
 
-      CREATE TABLE IF NOT EXISTS events (
-        id TEXT PRIMARY KEY,
-        day INTEGER NOT NULL,
-        hour TEXT NOT NULL,
-        title TEXT NOT NULL,
-        creatorId TEXT,
-        tag TEXT NOT NULL,
-        description TEXT,
-        color TEXT NOT NULL,
-        textColor TEXT NOT NULL,
-        timeRange TEXT NOT NULL,
-        venueName TEXT NOT NULL,
-        venueAddress TEXT NOT NULL,
-        lat REAL NOT NULL,
-        lng REAL NOT NULL,
-        officialSiteUrl TEXT,
-        ticketingUrl TEXT,
-        imageUrl TEXT NOT NULL,
-        multiple INTEGER DEFAULT 0,
-        isFavorite INTEGER DEFAULT 0,
-        FOREIGN KEY(creatorId) REFERENCES creators(id),
-        FOREIGN KEY(tag) REFERENCES tags(id)
-      );
-    `);
-
-    // Vérifier si la base doit être peuplée
-    const tagCountRes = db.exec("SELECT COUNT(*) FROM tags");
-    const count = (tagCountRes[0]?.values[0]?.[0] as number) ?? 0;
-
-    if (count === 0) {
-      // Insertion des tags
-      const insertTag = db.prepare("INSERT INTO tags (id, name, color) VALUES (?, ?, ?)");
-      for (const t of initialTags) {
-        insertTag.run([t.id, t.name, t.color]);
-      }
-      insertTag.free();
-
-      // Insertion des créateurs
-      const insertCreator = db.prepare("INSERT INTO creators (id, name, kind, mutuals, isFollowed) VALUES (?, ?, ?, ?, ?)");
-      for (const c of initialCreators) {
-        insertCreator.run([c.id, c.name, c.kind, c.mutuals ?? 0, c.isFollowed ? 1 : 0]);
-      }
-      insertCreator.free();
-
-      // Insertion des événements
-      const insertEvent = db.prepare(`
-        INSERT INTO events (
-          id, day, hour, title, creatorId, tag, description, color, textColor,
-          timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
-          imageUrl, multiple, isFavorite
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        CREATE TABLE IF NOT EXISTS events (
+          id TEXT PRIMARY KEY,
+          day INTEGER NOT NULL,
+          hour TEXT NOT NULL,
+          title TEXT NOT NULL,
+          creatorId TEXT,
+          tag TEXT NOT NULL,
+          description TEXT,
+          color TEXT NOT NULL,
+          textColor TEXT NOT NULL,
+          timeRange TEXT NOT NULL,
+          venueName TEXT NOT NULL,
+          venueAddress TEXT NOT NULL,
+          lat REAL NOT NULL,
+          lng REAL NOT NULL,
+          officialSiteUrl TEXT,
+          ticketingUrl TEXT,
+          imageUrl TEXT NOT NULL,
+          multiple INTEGER DEFAULT 0,
+          isFavorite INTEGER DEFAULT 0,
+          FOREIGN KEY(creatorId) REFERENCES creators(id),
+          FOREIGN KEY(tag) REFERENCES tags(id)
+        );
       `);
 
-      for (const e of initialEvents) {
-        insertEvent.run([
-          e.id,
-          e.day,
-          e.hour,
-          e.title,
-          e.creatorId ?? null,
-          e.tag,
-          e.description,
-          e.color,
-          e.textColor,
-          e.timeRange,
-          e.venueName,
-          e.venueAddress,
-          e.lat,
-          e.lng,
-          e.officialSiteUrl ?? null,
-          e.ticketingUrl ?? null,
-          e.imageUrl,
-          e.multiple ? 1 : 0,
-          e.isFavorite ? 1 : 0,
-        ]);
+      // Vérifier si la base doit être peuplée
+      const tagCountRes = db.exec("SELECT COUNT(*) FROM tags");
+      const count = (tagCountRes[0]?.values[0]?.[0] as number) ?? 0;
+
+      if (count === 0) {
+        // Insertion des tags
+        const insertTag = db.prepare("INSERT INTO tags (id, name, color) VALUES (?, ?, ?)");
+        for (const t of initialTags) {
+          insertTag.run([t.id, t.name, t.color]);
+        }
+        insertTag.free();
+
+        // Insertion des créateurs
+        const insertCreator = db.prepare("INSERT INTO creators (id, name, kind, mutuals, isFollowed) VALUES (?, ?, ?, ?, ?)");
+        for (const c of initialCreators) {
+          insertCreator.run([c.id, c.name, c.kind, c.mutuals ?? 0, c.isFollowed ? 1 : 0]);
+        }
+        insertCreator.free();
+
+        // Insertion des événements
+        const insertEvent = db.prepare(`
+          INSERT INTO events (
+            id, day, hour, title, creatorId, tag, description, color, textColor,
+            timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
+            imageUrl, multiple, isFavorite
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        for (const e of initialEvents) {
+          insertEvent.run([
+            e.id,
+            e.day,
+            e.hour,
+            e.title,
+            e.creatorId ?? null,
+            e.tag,
+            e.description,
+            e.color,
+            e.textColor,
+            e.timeRange,
+            e.venueName,
+            e.venueAddress,
+            e.lat,
+            e.lng,
+            e.officialSiteUrl ?? null,
+            e.ticketingUrl ?? null,
+            e.imageUrl,
+            e.multiple ? 1 : 0,
+            e.isFavorite ? 1 : 0,
+          ]);
+        }
+        insertEvent.free();
+
+        saveDatabaseToLocalStorage(db);
       }
-      insertEvent.free();
 
-      saveDatabaseToLocalStorage(db);
+      dbInstance = db;
+      return dbInstance;
+    } catch (e) {
+      console.error("FATAL SQL.JS INIT ERROR:", e);
+      throw e;
     }
-
-    dbInstance = db;
-    return dbInstance;
   })();
 
   return initPromise;
