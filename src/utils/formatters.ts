@@ -9,15 +9,44 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
-export const days = [
-  { name: "Lundi", date: "12" },
-  { name: "Mardi", date: "13" },
-  { name: "Mercredi", date: "14" },
-  { name: "Jeudi", date: "15" },
-  { name: "Vendredi", date: "16" },
-  { name: "Samedi", date: "17" },
-  { name: "Dimanche", date: "18" },
+// Calcul dynamique des jours d'une semaine selon un décalage (offset en semaines)
+// Semaine de référence (offset 0) : Lundi 12 au Dimanche 18 octobre 2026
+const BASE_MONDAY = new Date(2026, 9, 12); // Mois 9 = octobre
+
+const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const MONTH_NAMES = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre"
 ];
+
+export function getWeekDays(weekOffset: number = 0) {
+  const monday = new Date(BASE_MONDAY);
+  monday.setDate(BASE_MONDAY.getDate() + weekOffset * 7);
+
+  return DAY_NAMES.map((name, index) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + index);
+    return {
+      dayIndex: index,
+      name,
+      date: d.getDate().toString(),
+      month: MONTH_NAMES[d.getMonth()],
+      year: d.getFullYear(),
+      fullDateString: `${name} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`,
+    };
+  });
+}
+
+export function getWeekLabel(weekOffset: number = 0): string {
+  const days = getWeekDays(weekOffset);
+  const start = days[0];
+  const end = days[6];
+
+  if (start.month === end.month) {
+    return `Semaine du ${start.date} au ${end.date} ${start.month}`;
+  }
+  return `Semaine du ${start.date} ${start.month} au ${end.date} ${end.month}`;
+}
 
 export const hours = [
   "10h00", "11h00", "12h00", "13h00", "14h00", "15h00", "16h00",

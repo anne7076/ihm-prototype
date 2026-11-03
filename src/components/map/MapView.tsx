@@ -3,8 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Event } from "../../types";
 import { ChevronIcon } from "../common/Icons";
+import { getWeekDays } from "../../utils/formatters";
 
-// Fix pour les icones Leaflet par défaut avec Vite
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -44,35 +44,66 @@ function MapViewController({ center }: { center: [number, number] }) {
 
 interface MapViewProps {
   events: Event[];
+  weekOffset: number;
+  selectedDayIndex: number;
+  onPrevDay: () => void;
+  onNextDay: () => void;
   onSelectEvent: (event: Event) => void;
   onCalendar: () => void;
   selectedEvent?: Event;
 }
 
-export function MapView({ events, onSelectEvent, onCalendar, selectedEvent }: MapViewProps) {
-  // Centre par défaut sur Rennes (Place de la Mairie / République)
-  const defaultCenter: [number, number] = selectedEvent
-    ? [selectedEvent.lat, selectedEvent.lng]
-    : [48.1113, -1.6800];
+export function MapView({
+  events,
+  weekOffset,
+  selectedDayIndex,
+  onPrevDay,
+  onNextDay,
+  onSelectEvent,
+  onCalendar,
+  selectedEvent,
+}: MapViewProps) {
+  const weekDays = getWeekDays(weekOffset);
+  const currentDay = weekDays[selectedDayIndex] || weekDays[4]; // Vendredi par défaut
+
+  // Filtrer les événements pour n'afficher sur la carte que ceux du jour sélectionné
+  const dayEvents = events.filter((e) => e.day === selectedDayIndex);
+
+  // Centre par défaut sur Rennes ou sur l'événement sélectionné
+  const defaultCenter: [number, number] =
+    selectedEvent && selectedEvent.day === selectedDayIndex
+      ? [selectedEvent.lat, selectedEvent.lng]
+      : dayEvents[0]
+      ? [dayEvents[0].lat, dayEvents[0].lng]
+      : [48.1113, -1.6800];
 
   return (
     <main className="relative min-w-0 flex-1 overflow-hidden bg-[#e6ebe7]">
-      {/* Sélecteur de date en overlay */}
+      {/* Sélecteur de jour dynamique et interactif */}
       <div className="absolute left-1/2 top-5 z-[500] flex -translate-x-1/2 items-center rounded-xl border border-[#e0e3e1] bg-white p-1.5 shadow-[0_8px_28px_rgba(38,48,42,0.15)]">
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#656d67] hover:bg-[#f2f4f2]"
+          onClick={onPrevDay}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#656d67] transition hover:bg-[#f2f4f2] hover:text-[#20242b]"
           aria-label="Jour précédent"
+          title="Jour précédent"
         >
           <ChevronIcon direction="left" />
         </button>
-        <span className="min-w-[190px] px-4 text-center text-[14px] font-bold text-[#2f3531]">
-          Vendredi 16 octobre
-        </span>
+        <div className="min-w-[210px] px-4 text-center">
+          <p className="text-[14px] font-bold text-[#2f3531]">
+            {currentDay.fullDateString}
+          </p>
+          <span className="text-[11px] font-medium text-[#777e87]">
+            {dayEvents.length} événement{dayEvents.length > 1 ? "s" : ""} prévu{dayEvents.length > 1 ? "s" : ""}
+          </span>
+        </div>
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#656d67] hover:bg-[#f2f4f2]"
+          onClick={onNextDay}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#656d67] transition hover:bg-[#f2f4f2] hover:text-[#20242b]"
           aria-label="Jour suivant"
+          title="Jour suivant"
         >
           <ChevronIcon direction="right" />
         </button>
@@ -87,14 +118,13 @@ export function MapView({ events, onSelectEvent, onCalendar, selectedEvent }: Ma
         Voir en calendrier
       </button>
 
-      {/* Carte Leaflet avec tuiles CartoDB Positron / OSM Relief */}
+      {/* Carte Leaflet OpenStreetMap France */}
       <MapContainer
         center={defaultCenter}
         zoom={14}
         scrollWheelZoom={true}
         className="h-full w-full z-0"
       >
-        {/* Tuiles OpenStreetMap France / Standard - 100% ouvertes sans clé API */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributeurs'
           url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
@@ -103,8 +133,8 @@ export function MapView({ events, onSelectEvent, onCalendar, selectedEvent }: Ma
 
         <MapViewController center={defaultCenter} />
 
-        {/* Marqueurs réels pour chaque événement */}
-        {events.map((evt) => {
+        {/* Marqueurs synchronisés avec le jour sélectionné */}
+        {dayEvents.map((evt) => {
           const icon = createCustomPinIcon(evt.textColor, evt.multiple);
           return (
             <Marker key={evt.id} position={[evt.lat, evt.lng]} icon={icon}>

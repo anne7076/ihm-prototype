@@ -24,7 +24,11 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [selectedEventId, setSelectedEventId] = useState<string>("evt-velvet");
 
-  // Contrôles des fenêtres modales
+  // État temporel partagé entre Calendrier et Carte
+  const [weekOffset, setWeekOffset] = useState<number>(0);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(4); // Vendredi par défaut
+
+  // Modales
   const [isDayModalOpen, setIsDayModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -87,11 +91,35 @@ export default function App() {
     return active.includes(event.tag ?? "");
   };
 
-  // Filtrage combiné des événements pour le calendrier et la carte
+  // Filtrage combiné des événements
   const filteredEvents = useMemo(
     () => events.filter((e) => tagFilterActive(e) && matchesQuery(e)),
     [events, activeTags, searchedTags, terms]
   );
+
+  // Actions de navigation temporelle synchronisée
+  const handlePrevWeek = () => setWeekOffset((prev) => prev - 1);
+  const handleNextWeek = () => setWeekOffset((prev) => prev + 1);
+
+  const handlePrevDay = () => {
+    setSelectedDayIndex((prev) => {
+      if (prev === 0) {
+        setWeekOffset((w) => w - 1);
+        return 6; // Dimanche de la semaine précédente
+      }
+      return prev - 1;
+    });
+  };
+
+  const handleNextDay = () => {
+    setSelectedDayIndex((prev) => {
+      if (prev === 6) {
+        setWeekOffset((w) => w + 1);
+        return 0; // Lundi de la semaine suivante
+      }
+      return prev + 1;
+    });
+  };
 
   const handleToggleFollow = async (id: string) => {
     await toggleFollowCreator(id);
@@ -109,6 +137,7 @@ export default function App() {
     await addEvent(eventData);
     const updatedEvents = await getAllEvents();
     setEvents(updatedEvents);
+    setSelectedDayIndex(eventData.day);
   };
 
   const currentEvent = useMemo(
@@ -118,9 +147,10 @@ export default function App() {
 
   const currentCreator = currentEvent?.creatorId ? creatorById[currentEvent.creatorId] : undefined;
 
-  const fridayEvents = useMemo(
-    () => events.filter((e) => e.day === 4 || e.tag === "rock" || e.tag === "jazz"),
-    [events]
+  // Événements pour la modale multi-événements d'un jour précis
+  const selectedDayEvents = useMemo(
+    () => filteredEvents.filter((e) => e.day === selectedDayIndex),
+    [filteredEvents, selectedDayIndex]
   );
 
   if (isLoading) {
@@ -157,27 +187,41 @@ export default function App() {
 
       {/* Corps de l'application */}
       <div className="flex h-[calc(100vh-124px)] min-h-[596px]">
-        {/* Barre latérale des abonnements et suggestions */}
+        {/* Barre latérale des créateurs */}
         <Sidebar creators={creators} onToggleFollow={handleToggleFollow} />
 
-        {/* Vue principale : Carte topographique réelle ou Calendrier hebdomadaire scrollable */}
+        {/* Vue principale : Carte synchronisée ou Calendrier hebdomadaire scrollable */}
         {activeView === "map" ? (
           <MapView
             events={filteredEvents}
+            weekOffset={weekOffset}
+            selectedDayIndex={selectedDayIndex}
+            onPrevDay={handlePrevDay}
+            onNextDay={handleNextDay}
             selectedEvent={currentEvent}
             onCalendar={() => setActiveView("calendar")}
             onSelectEvent={(evt) => {
               setSelectedEventId(evt.id);
+              setSelectedDayIndex(evt.day);
               setIsDetailModalOpen(true);
             }}
           />
         ) : (
           <CalendarView
             events={events}
+            weekOffset={weekOffset}
+            onPrevWeek={handlePrevWeek}
+            onNextWeek={handleNextWeek}
+            selectedDayIndex={selectedDayIndex}
+            onSelectDay={(dayIdx) => {
+              setSelectedDayIndex(dayIdx);
+              setActiveView("map");
+            }}
             matchesQuery={matchesQuery}
             tagFilterActive={tagFilterActive}
             onSelectEvent={(evt) => {
               setSelectedEventId(evt.id);
+              setSelectedDayIndex(evt.day);
               if (evt.multiple) {
                 setIsDayModalOpen(true);
               } else {
@@ -188,14 +232,15 @@ export default function App() {
         )}
       </div>
 
-      {/* Modale des événements multiples d'une journée */}
+      {/* Modale des événements multiples du jour sélectionné */}
       {isDayModalOpen && (
         <DayEventsModal
-          events={fridayEvents}
+          events={selectedDayEvents.length ? selectedDayEvents : events.filter((e) => e.day === 4)}
           creators={creators}
           onClose={() => setIsDayModalOpen(false)}
           onSelectEvent={(evt) => {
             setSelectedEventId(evt.id);
+            setSelectedDayIndex(evt.day);
             setIsDayModalOpen(false);
             setIsDetailModalOpen(true);
           }}
@@ -215,13 +260,14 @@ export default function App() {
           }}
           onLocateOnMap={() => {
             setIsDetailModalOpen(false);
+            setSelectedDayIndex(currentEvent.day);
             setActiveView("map");
           }}
           onToggleFavorite={() => handleToggleFavorite(currentEvent.id)}
         />
       )}
 
-      {/* Modale de proposition d'événement avec persistance SQLite */}
+      {/* Modale de proposition d'événement */}
       {isCreateModalOpen && (
         <EventFormModal
           tags={tags}
