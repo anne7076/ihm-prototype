@@ -38,6 +38,7 @@ export default function App() {
   // État temporel partagé entre Calendrier et Carte
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(4); // Vendredi par défaut
+  const [mapDayIndex, setMapDayIndex] = useState<number | null>(null); // null = Toute la semaine par défaut sur la carte
 
   // Modales
   const [isDayModalOpen, setIsDayModalOpen] = useState(false);
@@ -213,7 +214,14 @@ export default function App() {
           setQuery("");
         }}
         activeScreen={activeView === "map" ? 4 : 1}
-        onToggleView={() => setActiveView(activeView === "calendar" ? "map" : "calendar")}
+        onToggleView={() => {
+          if (activeView === "calendar") {
+            setMapDayIndex(null); // Afficher toute la semaine par défaut
+            setActiveView("map");
+          } else {
+            setActiveView("calendar");
+          }
+        }}
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
       />
 
@@ -227,9 +235,10 @@ export default function App() {
           <MapView
             events={filteredEvents}
             weekOffset={weekOffset}
-            selectedDayIndex={selectedDayIndex}
-            onPrevDay={handlePrevDay}
-            onNextDay={handleNextDay}
+            selectedDayIndex={mapDayIndex}
+            onPrevWeek={handlePrevWeek}
+            onNextWeek={handleNextWeek}
+            onSelectDay={setMapDayIndex}
             selectedEvent={currentEvent}
             onCalendar={() => setActiveView("calendar")}
             onSelectEvent={handleSelectEvent}
@@ -243,6 +252,7 @@ export default function App() {
             selectedDayIndex={selectedDayIndex}
             onSelectDay={(dayIdx) => {
               setSelectedDayIndex(dayIdx);
+              setMapDayIndex(dayIdx);
               setActiveView("map");
             }}
             matchesQuery={matchesQuery}
@@ -284,6 +294,7 @@ export default function App() {
             const dayIdx = getDayIndexForDate(currentEvent.dateStr);
             setWeekOffset(offset);
             setSelectedDayIndex(dayIdx);
+            setMapDayIndex(dayIdx);
             setActiveView("map");
           }}
           onToggleFavorite={() => handleToggleFavorite(currentEvent.id)}
