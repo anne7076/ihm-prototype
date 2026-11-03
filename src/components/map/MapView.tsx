@@ -118,7 +118,7 @@ export function MapView({
         Voir en calendrier
       </button>
 
-      {/* Carte Leaflet OpenStreetMap France */}
+      {/* Carte Leaflet avec tuiles ESRI World Street Map (palette douce et lisible style Google Maps) */}
       <MapContainer
         center={defaultCenter}
         zoom={14}
@@ -126,9 +126,9 @@ export function MapView({
         className="h-full w-full z-0"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributeurs'
-          url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
-          maxZoom={20}
+          attribution='Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={19}
         />
 
         <MapViewController center={defaultCenter} />

@@ -24,7 +24,13 @@ import { EventFormModal } from "./components/modals/EventFormModal";
 type ActiveView = "calendar" | "map";
 
 export default function App() {
-  const [activeView, setActiveView] = useState<ActiveView>("calendar");
+  const [activeView, setActiveView] = useState<ActiveView>(() => {
+    if (typeof window !== "undefined") {
+      const v = new URLSearchParams(window.location.search).get("view");
+      if (v === "map" || v === "calendar") return v;
+    }
+    return "calendar";
+  });
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [selectedEventId, setSelectedEventId] = useState<string>("evt-velvet");
