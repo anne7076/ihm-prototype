@@ -8,6 +8,11 @@ import {
   toggleFavoriteEvent,
   addEvent,
 } from "./db";
+import {
+  getWeekDays,
+  getWeekOffsetForDate,
+  getDayIndexForDate,
+} from "./utils/formatters";
 import { Header } from "./components/common/Header";
 import { Sidebar } from "./components/common/Sidebar";
 import { CalendarView } from "./components/calendar/CalendarView";
@@ -97,6 +102,10 @@ export default function App() {
     [events, activeTags, searchedTags, terms]
   );
 
+  // Jours de la semaine courante
+  const currentWeekDays = useMemo(() => getWeekDays(weekOffset), [weekOffset]);
+  const currentDay = currentWeekDays[selectedDayIndex] || currentWeekDays[4];
+
   // Actions de navigation temporelle synchronisée
   const handlePrevWeek = () => setWeekOffset((prev) => prev - 1);
   const handleNextWeek = () => setWeekOffset((prev) => prev + 1);
@@ -134,10 +143,27 @@ export default function App() {
   };
 
   const handleCreateEvent = async (eventData: Omit<Event, "id" | "isFavorite">) => {
-    await addEvent(eventData);
+    const newEvt = await addEvent(eventData);
     const updatedEvents = await getAllEvents();
     setEvents(updatedEvents);
-    setSelectedDayIndex(eventData.day);
+    const offset = getWeekOffsetForDate(newEvt.dateStr);
+    const dayIdx = getDayIndexForDate(newEvt.dateStr);
+    setWeekOffset(offset);
+    setSelectedDayIndex(dayIdx);
+    setSelectedEventId(newEvt.id);
+  };
+
+  const handleSelectEvent = (evt: Event) => {
+    setSelectedEventId(evt.id);
+    const offset = getWeekOffsetForDate(evt.dateStr);
+    const dayIdx = getDayIndexForDate(evt.dateStr);
+    setWeekOffset(offset);
+    setSelectedDayIndex(dayIdx);
+    if (evt.multiple) {
+      setIsDayModalOpen(true);
+    } else {
+      setIsDetailModalOpen(true);
+    }
   };
 
   const currentEvent = useMemo(
@@ -149,8 +175,8 @@ export default function App() {
 
   // Événements pour la modale multi-événements d'un jour précis
   const selectedDayEvents = useMemo(
-    () => filteredEvents.filter((e) => e.day === selectedDayIndex),
-    [filteredEvents, selectedDayIndex]
+    () => filteredEvents.filter((e) => e.dateStr === currentDay?.dateStr),
+    [filteredEvents, currentDay]
   );
 
   if (isLoading) {
@@ -200,11 +226,7 @@ export default function App() {
             onNextDay={handleNextDay}
             selectedEvent={currentEvent}
             onCalendar={() => setActiveView("calendar")}
-            onSelectEvent={(evt) => {
-              setSelectedEventId(evt.id);
-              setSelectedDayIndex(evt.day);
-              setIsDetailModalOpen(true);
-            }}
+            onSelectEvent={handleSelectEvent}
           />
         ) : (
           <CalendarView
@@ -219,15 +241,7 @@ export default function App() {
             }}
             matchesQuery={matchesQuery}
             tagFilterActive={tagFilterActive}
-            onSelectEvent={(evt) => {
-              setSelectedEventId(evt.id);
-              setSelectedDayIndex(evt.day);
-              if (evt.multiple) {
-                setIsDayModalOpen(true);
-              } else {
-                setIsDetailModalOpen(true);
-              }
-            }}
+            onSelectEvent={handleSelectEvent}
           />
         )}
       </div>
@@ -235,12 +249,12 @@ export default function App() {
       {/* Modale des événements multiples du jour sélectionné */}
       {isDayModalOpen && (
         <DayEventsModal
-          events={selectedDayEvents.length ? selectedDayEvents : events.filter((e) => e.day === 4)}
+          dayTitle={currentDay?.fullDateString}
+          events={selectedDayEvents.length ? selectedDayEvents : events.filter((e) => e.dateStr === currentDay?.dateStr)}
           creators={creators}
           onClose={() => setIsDayModalOpen(false)}
           onSelectEvent={(evt) => {
             setSelectedEventId(evt.id);
-            setSelectedDayIndex(evt.day);
             setIsDayModalOpen(false);
             setIsDetailModalOpen(true);
           }}
@@ -260,7 +274,10 @@ export default function App() {
           }}
           onLocateOnMap={() => {
             setIsDetailModalOpen(false);
-            setSelectedDayIndex(currentEvent.day);
+            const offset = getWeekOffsetForDate(currentEvent.dateStr);
+            const dayIdx = getDayIndexForDate(currentEvent.dateStr);
+            setWeekOffset(offset);
+            setSelectedDayIndex(dayIdx);
             setActiveView("map");
           }}
           onToggleFavorite={() => handleToggleFavorite(currentEvent.id)}

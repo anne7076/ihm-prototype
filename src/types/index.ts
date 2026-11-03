@@ -16,7 +16,7 @@ export type Tag = {
 
 export type Event = {
   id: string;
-  day: number; // 0 = Lundi, 6 = Dimanche
+  dateStr: string; // Format ISO: "YYYY-MM-DD" (ex: "2026-10-16")
   hour: string; // ex: "19h00"
   title: string;
   creatorId?: string;

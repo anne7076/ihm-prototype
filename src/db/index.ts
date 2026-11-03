@@ -2,7 +2,7 @@ import initSqlJs, { type Database } from "sql.js";
 import type { Tag, Creator, Event } from "../types";
 import { initialTags, initialCreators, initialEvents } from "./seed";
 
-const STORAGE_KEY = "ihm_rennes_sqlite_db_v3";
+const STORAGE_KEY = "ihm_rennes_sqlite_db_v4";
 
 let dbInstance: Database | null = null;
 let initPromise: Promise<Database> | null = null;
@@ -70,7 +70,7 @@ export async function getDatabase(): Promise<Database> {
 
         CREATE TABLE IF NOT EXISTS events (
           id TEXT PRIMARY KEY,
-          day INTEGER NOT NULL,
+          dateStr TEXT NOT NULL,
           hour TEXT NOT NULL,
           title TEXT NOT NULL,
           creatorId TEXT,
@@ -115,7 +115,7 @@ export async function getDatabase(): Promise<Database> {
         // Insertion des événements
         const insertEvent = db.prepare(`
           INSERT INTO events (
-            id, day, hour, title, creatorId, tag, description, color, textColor,
+            id, dateStr, hour, title, creatorId, tag, description, color, textColor,
             timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
             imageUrl, multiple, isFavorite
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -124,7 +124,7 @@ export async function getDatabase(): Promise<Database> {
         for (const e of initialEvents) {
           insertEvent.run([
             e.id,
-            e.day,
+            e.dateStr,
             e.hour,
             e.title,
             e.creatorId ?? null,
@@ -189,16 +189,16 @@ export async function getAllEvents(): Promise<Event[]> {
   const db = await getDatabase();
   const res = db.exec(`
     SELECT
-      id, day, hour, title, creatorId, tag, description, color, textColor,
+      id, dateStr, hour, title, creatorId, tag, description, color, textColor,
       timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
       imageUrl, multiple, isFavorite
     FROM events
-    ORDER BY day, hour
+    ORDER BY dateStr, hour
   `);
   if (!res.length) return [];
   return res[0].values.map((row) => ({
     id: row[0] as string,
-    day: row[1] as number,
+    dateStr: row[1] as string,
     hour: row[2] as string,
     title: row[3] as string,
     creatorId: (row[4] as string) || undefined,
@@ -257,14 +257,14 @@ export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise
   db.run(
     `
     INSERT INTO events (
-      id, day, hour, title, creatorId, tag, description, color, textColor,
+      id, dateStr, hour, title, creatorId, tag, description, color, textColor,
       timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
       imageUrl, multiple, isFavorite
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
     `,
     [
       id,
-      event.day,
+      event.dateStr,
       event.hour,
       event.title,
       event.creatorId ?? null,

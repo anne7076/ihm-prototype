@@ -105,8 +105,8 @@ export function CalendarView({
               </span>
             </div>,
             ...weekDays.map((day) => {
-              // Filtrer selon le jour de la semaine et la semaine affichée
-              const found = events.find((item) => item.day === day.dayIndex && item.hour === hour);
+              // Filtrer selon la date exacte de la case
+              const found = events.find((item) => item.dateStr === day.dateStr && item.hour === hour);
               const event = found && tagFilterActive(found) ? found : undefined;
               return (
                 <div

@@ -20,9 +20,10 @@ export const initialCreators: Creator[] = [
 ];
 
 export const initialEvents: Event[] = [
+  // Semaine du 12 au 18 octobre 2026
   {
     id: "evt-velvet",
-    day: 0,
+    dateStr: "2026-10-12", // Lundi 12 octobre
     hour: "19h00",
     title: "Festival Bars 'n Breizh",
     creatorId: "etage",
@@ -42,7 +43,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-jazz-midi",
-    day: 1,
+    dateStr: "2026-10-13", // Mardi 13 octobre
     hour: "12h00",
     title: "Jazz à midi",
     creatorId: "gilbert",
@@ -61,7 +62,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-neon-pulse",
-    day: 1,
+    dateStr: "2026-10-13", // Mardi 13 octobre
     hour: "21h00",
     title: "Neon Pulse Live Session",
     creatorId: "neon",
@@ -80,7 +81,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-open-air",
-    day: 2,
+    dateStr: "2026-10-14", // Mercredi 14 octobre
     hour: "18h00",
     title: "Open Air & Dub Session",
     creatorId: "antipode",
@@ -99,7 +100,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-pop-session",
-    day: 3,
+    dateStr: "2026-10-15", // Jeudi 15 octobre
     hour: "20h00",
     title: "Pop Session & Release Party",
     creatorId: "lola",
@@ -117,7 +118,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-multi-vendredi",
-    day: 4,
+    dateStr: "2026-10-16", // Vendredi 16 octobre
     hour: "20h00",
     title: "Nuit Blanche des Bars Rock",
     creatorId: "etage",
@@ -136,7 +137,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-jam-jazz",
-    day: 4,
+    dateStr: "2026-10-16", // Vendredi 16 octobre
     hour: "21h00",
     title: "Jam Session Jazz de Nuit",
     creatorId: "gilbert",
@@ -154,7 +155,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-rock-garden",
-    day: 5,
+    dateStr: "2026-10-17", // Samedi 17 octobre
     hour: "16h00",
     title: "Rock Garden Open Stage",
     creatorId: "etage",
@@ -172,7 +173,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-electric-night",
-    day: 5,
+    dateStr: "2026-10-17", // Samedi 17 octobre
     hour: "22h00",
     title: "Electric Night Rennes",
     creatorId: "neon",
@@ -190,7 +191,7 @@ export const initialEvents: Event[] = [
   },
   {
     id: "evt-sunday-groove",
-    day: 6,
+    dateStr: "2026-10-18", // Dimanche 18 octobre
     hour: "11h00",
     title: "Sunday Groove & Brunch",
     creatorId: "antipode",
@@ -204,6 +205,44 @@ export const initialEvents: Event[] = [
     lat: 48.0988,
     lng: -1.7126,
     imageUrl: "/images/events/reggae-outdoor.jpg",
+    isFavorite: false,
+  },
+
+  // Semaine suivante (du 19 au 25 octobre 2026) : programmation spécifique
+  {
+    id: "evt-electro-trans",
+    dateStr: "2026-10-23", // Vendredi 23 octobre
+    hour: "22h00",
+    title: "Warm-Up Trans Musicales",
+    creatorId: "ubu",
+    tag: "electro",
+    description: "Soirée électro avant-goût des Trans Musicales de Rennes à l'Ubu.",
+    color: "#dce9ff",
+    textColor: "#2866c3",
+    timeRange: "22h00 - 04h00",
+    venueName: "L'Ubu",
+    venueAddress: "1 Rue Saint-Hélier, 35000 Rennes",
+    lat: 48.1077,
+    lng: -1.6738,
+    imageUrl: "/images/events/electro-lights.jpg",
+    isFavorite: false,
+  },
+  {
+    id: "evt-rock-antipode",
+    dateStr: "2026-10-24", // Samedi 24 octobre
+    hour: "20h00",
+    title: "Post-Punk Revival Night",
+    creatorId: "antipode",
+    tag: "rock",
+    description: "Deux groupes de post-punk rennais partagent la grande scène de l'Antipode.",
+    color: "#f9dedf",
+    textColor: "#a82f39",
+    timeRange: "20h00 - 23h30",
+    venueName: "L'Antipode",
+    venueAddress: "75 Avenue Jules Maniez, 35000 Rennes",
+    lat: 48.0988,
+    lng: -1.7126,
+    imageUrl: "/images/events/rock-concert.jpg",
     isFavorite: false,
   },
 ];

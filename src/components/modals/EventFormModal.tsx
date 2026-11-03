@@ -22,7 +22,7 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
   const [title, setTitle] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("rock");
   const [secondaryTags, setSecondaryTags] = useState("");
-  const [dayIndex, setDayIndex] = useState<number>(4); // Vendredi par défaut
+  const [dateStr, setDateStr] = useState<string>("2026-10-16");
   const [startTime, setStartTime] = useState("20h30");
   const [endTime, setEndTime] = useState("23h30");
   const [venueIndex, setVenueIndex] = useState<number>(0);
@@ -40,7 +40,7 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
       const venue = KNOWN_VENUES[venueIndex];
 
       await onSubmit({
-        day: Number(dayIndex),
+        dateStr,
         hour: startTime.split("h")[0] ? `${startTime.split("h")[0]}h00` : "20h00",
         title: title.trim(),
         tag: selectedTag,
@@ -150,20 +150,14 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
 
               <div className="grid grid-cols-[1.15fr_1fr_1fr] gap-3">
                 <label className="block text-[12px] font-bold text-[#4c535c]">
-                  Jour
-                  <select
-                    value={dayIndex}
-                    onChange={(e) => setDayIndex(Number(e.target.value))}
+                  Date
+                  <input
+                    type="date"
+                    required
+                    value={dateStr}
+                    onChange={(e) => setDateStr(e.target.value)}
                     className={inputClass}
-                  >
-                    <option value={0}>Lundi 12</option>
-                    <option value={1}>Mardi 13</option>
-                    <option value={2}>Mercredi 14</option>
-                    <option value={3}>Jeudi 15</option>
-                    <option value={4}>Vendredi 16</option>
-                    <option value={5}>Samedi 17</option>
-                    <option value={6}>Dimanche 18</option>
-                  </select>
+                  />
                 </label>
                 <label className="block text-[12px] font-bold text-[#4c535c]">
                   Début

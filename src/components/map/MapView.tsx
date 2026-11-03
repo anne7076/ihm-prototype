@@ -67,11 +67,11 @@ export function MapView({
   const currentDay = weekDays[selectedDayIndex] || weekDays[4]; // Vendredi par défaut
 
   // Filtrer les événements pour n'afficher sur la carte que ceux du jour sélectionné
-  const dayEvents = events.filter((e) => e.day === selectedDayIndex);
+  const dayEvents = events.filter((e) => e.dateStr === currentDay.dateStr);
 
   // Centre par défaut sur Rennes ou sur l'événement sélectionné
   const defaultCenter: [number, number] =
-    selectedEvent && selectedEvent.day === selectedDayIndex
+    selectedEvent && selectedEvent.dateStr === currentDay.dateStr
       ? [selectedEvent.lat, selectedEvent.lng]
       : dayEvents[0]
       ? [dayEvents[0].lat, dayEvents[0].lng]

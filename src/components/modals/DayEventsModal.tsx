@@ -1,8 +1,8 @@
 import type { Event, Creator } from "../../types";
-import { initials } from "../../utils/formatters";
 import { EventCard } from "../events/EventCard";
 
 interface DayEventsModalProps {
+  dayTitle?: string;
   events: Event[];
   creators: Creator[];
   onClose: () => void;
@@ -11,6 +11,7 @@ interface DayEventsModalProps {
 }
 
 export function DayEventsModal({
+  dayTitle,
   events,
   creators,
   onClose,
@@ -34,7 +35,7 @@ export function DayEventsModal({
               Événements de la journée
             </p>
             <h2 id="day-modal-title" className="text-[22px] font-bold tracking-[-0.02em] text-[#24282e]">
-              Vendredi 16 octobre
+              {dayTitle || "Programme du jour"}
             </h2>
           </div>
           <button
