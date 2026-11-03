@@ -2,7 +2,7 @@ import initSqlJs, { type Database } from "sql.js";
 import type { Tag, Creator, Event } from "../types";
 import { initialTags, initialCreators, initialEvents } from "./seed";
 
-const STORAGE_KEY = "ihm_rennes_sqlite_db_v2";
+const STORAGE_KEY = "ihm_rennes_sqlite_db_v3";
 
 let dbInstance: Database | null = null;
 let initPromise: Promise<Database> | null = null;

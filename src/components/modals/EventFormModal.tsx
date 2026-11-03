@@ -54,7 +54,15 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
         lng: venue.lng,
         officialSiteUrl: siteUrl.trim() || undefined,
         imageUrl:
-          "https://images.unsplash.com/photo-1473691955023-da1c49c95c78?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+          selectedTag === "jazz"
+            ? "/images/events/jazz-band.jpg"
+            : selectedTag === "electro"
+            ? "/images/events/electro-lights.jpg"
+            : selectedTag === "reggae"
+            ? "/images/events/reggae-outdoor.jpg"
+            : selectedTag === "pop"
+            ? "/images/events/pop-singer.jpg"
+            : "/images/events/rock-concert.jpg",
       });
       onClose();
     } finally {

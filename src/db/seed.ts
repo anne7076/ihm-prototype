@@ -37,7 +37,7 @@ export const initialEvents: Event[] = [
     lng: -1.6775,
     officialSiteUrl: "https://www.rennes.fr",
     ticketingUrl: "https://www.destinationrennes.com",
-    imageUrl: "https://images.unsplash.com/photo-1473691955023-da1c49c95c78?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/rock-concert.jpg",
     isFavorite: true,
   },
   {
@@ -56,7 +56,7 @@ export const initialEvents: Event[] = [
     lat: 48.1144,
     lng: -1.6808,
     officialSiteUrl: "https://www.rennes.fr",
-    imageUrl: "https://images.unsplash.com/photo-1577042816206-2e85c23f2392?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/jazz-band.jpg",
     isFavorite: false,
   },
   {
@@ -75,7 +75,7 @@ export const initialEvents: Event[] = [
     lat: 48.1077,
     lng: -1.6738,
     ticketingUrl: "https://www.lestrans.com",
-    imageUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/electro-lights.jpg",
     isFavorite: false,
   },
   {
@@ -94,7 +94,7 @@ export const initialEvents: Event[] = [
     lat: 48.0988,
     lng: -1.7126,
     officialSiteUrl: "https://antipode-rennes.fr",
-    imageUrl: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/reggae-outdoor.jpg",
     isFavorite: false,
   },
   {
@@ -112,7 +112,7 @@ export const initialEvents: Event[] = [
     venueAddress: "24 Place des Lices, 35000 Rennes",
     lat: 48.1128,
     lng: -1.6839,
-    imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/pop-singer.jpg",
     isFavorite: false,
   },
   {
@@ -131,7 +131,7 @@ export const initialEvents: Event[] = [
     lat: 48.1054,
     lng: -1.6775,
     multiple: true,
-    imageUrl: "https://images.unsplash.com/photo-1473691955023-da1c49c95c78?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/rock-concert.jpg",
     isFavorite: false,
   },
   {
@@ -149,7 +149,7 @@ export const initialEvents: Event[] = [
     venueAddress: "Place Sainte-Anne, 35000 Rennes",
     lat: 48.1144,
     lng: -1.6808,
-    imageUrl: "https://images.unsplash.com/photo-1577042816206-2e85c23f2392?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/jazz-band.jpg",
     isFavorite: false,
   },
   {
@@ -167,7 +167,7 @@ export const initialEvents: Event[] = [
     venueAddress: "Place Saint-Melaine, 35000 Rennes",
     lat: 48.1145,
     lng: -1.6702,
-    imageUrl: "https://images.unsplash.com/photo-1473691955023-da1c49c95c78?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/rock-concert.jpg",
     isFavorite: false,
   },
   {
@@ -185,7 +185,7 @@ export const initialEvents: Event[] = [
     venueAddress: "1 Rue Saint-Hélier, 35000 Rennes",
     lat: 48.1077,
     lng: -1.6738,
-    imageUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/electro-lights.jpg",
     isFavorite: false,
   },
   {
@@ -203,7 +203,7 @@ export const initialEvents: Event[] = [
     venueAddress: "75 Avenue Jules Maniez, 35000 Rennes",
     lat: 48.0988,
     lng: -1.7126,
-    imageUrl: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=900",
+    imageUrl: "/images/events/reggae-outdoor.jpg",
     isFavorite: false,
   },
 ];
