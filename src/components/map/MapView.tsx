@@ -94,11 +94,11 @@ export function MapView({ events, onSelectEvent, onCalendar, selectedEvent }: Ma
         scrollWheelZoom={true}
         className="h-full w-full z-0"
       >
-        {/* Tuiles cartographiques propres avec relief et topographie urbaine */}
+        {/* Tuiles OpenStreetMap France / Standard - 100% ouvertes sans clé API */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          maxZoom={19}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributeurs'
+          url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+          maxZoom={20}
         />
 
         <MapViewController center={defaultCenter} />
