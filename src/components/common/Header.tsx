@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { SearchIcon, MenuIcon, PinIcon, CloseIcon } from "./Icons";
 import type { Tag } from "../../types";
 
@@ -12,6 +13,8 @@ interface HeaderProps {
   activeScreen: 1 | 2 | 3 | 4 | 5;
   onToggleView: () => void;
   onOpenCreateModal: () => void;
+  favoritesCount?: number;
+  followedCount?: number;
 }
 
 export function Header({
@@ -25,13 +28,29 @@ export function Header({
   activeScreen,
   onToggleView,
   onOpenCreateModal,
+  favoritesCount = 0,
+  followedCount = 0,
 }: HeaderProps) {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <header className="grid h-[124px] grid-cols-[1fr_auto_1fr] items-center border-b border-[#e5e7eb] bg-white px-6">
       <div className="flex min-w-0 items-center gap-3.5">
         <button
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#555d68] transition-colors hover:bg-[#f3f4f6]"
           aria-label="Ouvrir le menu"
+          title="Menu de navigation"
         >
           <MenuIcon />
         </button>
@@ -43,7 +62,9 @@ export function Header({
             <i className="h-4 w-[3px] rounded-full bg-white" />
           </span>
         </div>
-        <span className="truncate text-[15px] font-bold tracking-[0.045em]">AGENDA MUSIQUE - RENNES</span>
+        <span className="truncate text-[15px] font-bold tracking-[0.045em] text-[#222730]">
+          AGENDA MUSIQUE - RENNES
+        </span>
       </div>
 
       <div className="mx-5 flex flex-col gap-2">
@@ -120,6 +141,7 @@ export function Header({
         >
           +&nbsp; Ajouter un événement
         </button>
+
         <button
           onClick={onToggleView}
           className={`flex h-11 items-center gap-2 rounded-xl border px-3.5 text-[13px] font-semibold transition ${
@@ -143,15 +165,53 @@ export function Header({
             </>
           )}
         </button>
-        <button
-          className="ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-[#f0e6dd] text-[#6f5141] ring-2 ring-white shadow-sm"
-          aria-label="Ouvrir le profil"
-        >
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="8.5" r="3.2" fill="currentColor" opacity=".75" />
-            <path d="M5.8 19c.7-3.4 3-5.2 6.2-5.2s5.5 1.8 6.2 5.2" fill="currentColor" opacity=".75" />
-          </svg>
-        </button>
+
+        {/* Profil utilisateur interactif */}
+        <div className="relative" ref={profileRef}>
+          <button
+            type="button"
+            onClick={() => setIsProfileOpen((prev) => !prev)}
+            className="ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-[#f0e6dd] text-[#6f5141] ring-2 ring-white shadow-sm transition hover:ring-[#ff4e64]/40"
+            aria-label="Ouvrir le menu de profil"
+            title="Mon profil"
+          >
+            <span className="text-[12px] font-extrabold uppercase tracking-wide">MR</span>
+          </button>
+
+          {isProfileOpen && (
+            <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-[0_18px_40px_rgba(26,30,36,0.18)]">
+              <div className="flex items-center gap-3 border-b border-[#f0f2f4] pb-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#ff4e64] text-[13px] font-extrabold text-white shadow-sm">
+                  MR
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-bold text-[#22262d]">Mahamadou</p>
+                  <p className="truncate text-[11px] text-[#787f8a]">Membre · INSA Rennes</p>
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-1 text-[12px]">
+                <div className="flex items-center justify-between rounded-lg px-2.5 py-2 transition hover:bg-[#f8f9fa]">
+                  <span className="text-[#555c66]">Concerts en favoris</span>
+                  <span className="rounded-full bg-[#fff0f2] px-2 py-0.5 font-bold text-[#ff4e64]">
+                    {favoritesCount}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg px-2.5 py-2 transition hover:bg-[#f8f9fa]">
+                  <span className="text-[#555c66]">Abonnements suivis</span>
+                  <span className="rounded-full bg-[#f1f3f5] px-2 py-0.5 font-bold text-[#30353c]">
+                    {followedCount}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-3 border-t border-[#f0f2f4] pt-2 text-[11px] text-[#8e95a0]">
+                <p>Agenda Musical de Rennes v2.1</p>
+                <p className="text-[10px]">Base SQLite locale active</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

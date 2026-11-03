@@ -5,30 +5,23 @@ import { HeartIcon } from "../common/Icons";
 export function CalendarEvent({ event }: { event: Event }) {
   if (event.multiple) {
     return (
-      <div className="group relative flex h-full w-full overflow-visible rounded-[7px] shadow-[0_2px_8px_rgba(33,37,41,0.12)] ring-2 ring-white">
-        <span className="h-full flex-1 rounded-l-[7px] bg-[#ef5a5a]" />
-        <span className="h-full flex-1 bg-[#4e8ff7]" />
-        <span className="h-full flex-1 rounded-r-[7px] bg-[#55ae78]" />
-        <svg
-          className="pointer-events-none absolute -bottom-4 right-2 z-20 h-7 w-7 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]"
-          viewBox="0 0 30 34"
-          aria-hidden="true"
-        >
-          <path
-            d="M5 3.2v23.1l5.8-5.2 4.1 9.6 4.2-1.9-4.1-9.2 7.8-.5L5 3.2Z"
-            fill="#20242b"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-        </svg>
+      <div
+        className="group relative flex h-full w-full items-center justify-between overflow-hidden rounded-[7px] bg-[#222730] px-2 text-white shadow-[0_2px_8px_rgba(33,37,41,0.18)] ring-1 ring-black/10 transition hover:bg-[#1a1e26]"
+        title={event.title}
+      >
+        <span className="truncate text-[11px] font-bold tracking-tight">
+          {event.title}
+        </span>
+        <span className="ml-1.5 flex shrink-0 items-center gap-1 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-extrabold uppercase">
+          Multi
+        </span>
       </div>
     );
   }
 
   return (
     <div
-      className="flex h-full w-full items-center overflow-hidden rounded-[7px] px-2.5 text-[11px] font-semibold leading-none shadow-[0_1px_4px_rgba(32,38,45,0.08)]"
+      className="flex h-full w-full items-center overflow-hidden rounded-[7px] px-2.5 text-[11px] font-semibold leading-none shadow-[0_1px_4px_rgba(32,38,45,0.08)] transition hover:brightness-95"
       style={{ backgroundColor: event.color, color: event.textColor }}
       title={event.title}
     >
@@ -54,10 +47,10 @@ export function EventCard({
 }: EventCardProps) {
   return (
     <article
-      className={`relative grid h-[322px] shrink-0 grid-cols-[52%_48%] overflow-hidden rounded-2xl border bg-white transition ${
+      className={`relative grid h-[322px] shrink-0 grid-cols-[52%_48%] overflow-hidden rounded-2xl border bg-white transition-all duration-200 cursor-pointer ${
         focused
-          ? "cursor-pointer border-[#ffb2bc] shadow-[0_14px_35px_rgba(48,32,35,0.11)] ring-1 ring-[#ff4e64]/10"
-          : "border-[#e5e7ea] shadow-[0_8px_24px_rgba(48,52,58,0.07)]"
+          ? "border-[#ff8b99] shadow-[0_16px_36px_rgba(255,78,100,0.16)] ring-2 ring-[#ff4e64]/20"
+          : "border-[#e5e7ea] shadow-[0_8px_24px_rgba(48,52,58,0.07)] hover:border-[#ccd1d8] hover:shadow-[0_12px_28px_rgba(48,52,58,0.12)]"
       }`}
       onClick={onClick}
     >
@@ -91,13 +84,13 @@ export function EventCard({
           </div>
         </div>
         <p className="mt-6 max-w-[350px] text-[14px] leading-[1.65] text-[#6b717b]">{event.description}</p>
-        <button type="button" className="mt-auto w-fit text-[13px] font-bold text-[#ff4e64]">
-          Voir les détails
+        <button type="button" className="mt-auto w-fit text-[13px] font-bold text-[#ff4e64] hover:underline">
+          Voir les détails &rarr;
         </button>
       </div>
 
       <div className="relative min-w-0 overflow-hidden">
-        <img className="h-full w-full object-cover" src={event.imageUrl} alt={event.title} />
+        <img className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" src={event.imageUrl} alt={event.title} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/5 to-black/10" />
         <button
           type="button"
@@ -113,23 +106,6 @@ export function EventCard({
           <HeartIcon filled={event.isFavorite} />
         </button>
       </div>
-
-      {focused && (
-        <svg
-          className="pointer-events-none absolute bottom-[70px] left-[39%] z-20 h-9 w-9 drop-shadow-[0_2px_1px_rgba(255,255,255,0.9)]"
-          viewBox="0 0 36 40"
-          aria-hidden="true"
-        >
-          <path
-            d="M6 3.5v27l6.8-6.1 4.8 11.2 4.9-2.2-4.8-10.7 9.1-.6L6 3.5Z"
-            fill="#1d2127"
-            stroke="white"
-            strokeWidth="2.2"
-            strokeLinejoin="round"
-          />
-          <path d="M28 4.5 31 1.5M31 10h4M25.5 1l1-4" stroke="#1d2127" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
-      )}
     </article>
   );
 }

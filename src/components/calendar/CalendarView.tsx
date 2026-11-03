@@ -32,7 +32,7 @@ export function CalendarView({
   return (
     <main className="flex min-w-0 flex-1 flex-col overflow-hidden bg-white">
       {/* Barre supérieure avec dates et navigation de semaine */}
-      <div className="flex h-[64px] shrink-0 items-center justify-between border-b border-[#e8eaed] px-7 bg-white z-10">
+      <div className="flex h-[54px] shrink-0 items-center justify-between px-6 bg-white z-10">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -53,15 +53,17 @@ export function CalendarView({
             <ChevronIcon direction="right" />
           </button>
         </div>
-        <h1 className="text-[17px] font-bold tracking-[-0.01em] text-[#282d34]">
+        <h1 className="text-[16px] font-bold tracking-[-0.01em] text-[#24282e]">
           {weekTitle}
         </h1>
         <div className="w-[72px]" aria-hidden="true" />
       </div>
 
       {/* En-tête des colonnes des jours (fixe) */}
-      <div className="grid h-[50px] shrink-0 grid-cols-[80px_repeat(7,minmax(0,1fr))] border-b border-[#e6e8eb] bg-[#fbfbfc] z-10 shadow-xs">
-        <div className="border-r border-[#e6e8eb]" />
+      <div className="grid h-[48px] shrink-0 grid-cols-[80px_repeat(7,minmax(0,1fr))] border-t border-b border-[#e6e8eb] bg-[#fbfbfc] z-10">
+        <div className="flex items-center justify-center border-r border-[#e6e8eb] text-[10px] font-bold uppercase tracking-wider text-[#9aa0a9]">
+          Heure
+        </div>
         {weekDays.map((day) => {
           const isSelected = selectedDayIndex === day.dayIndex;
           return (

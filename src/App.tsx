@@ -43,7 +43,12 @@ export default function App() {
   // Modales
   const [isDayModalOpen, setIsDayModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search).get("modal") === "create";
+    }
+    return false;
+  });
 
   const [tags, setTags] = useState<Tag[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -186,6 +191,9 @@ export default function App() {
     [filteredEvents, currentDay]
   );
 
+  const favoritesCount = useMemo(() => events.filter((e) => e.isFavorite).length, [events]);
+  const followedCount = useMemo(() => creators.filter((c) => c.isFollowed).length, [creators]);
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#f7f8fa]">
@@ -223,6 +231,8 @@ export default function App() {
           }
         }}
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        favoritesCount={favoritesCount}
+        followedCount={followedCount}
       />
 
       {/* Corps de l'application */}
