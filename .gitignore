@@ -20,5 +20,6 @@ USER_INTERACTION_FLOW.md
 # beside it.
 /.plugins/
 /.opencode-skills/
-data/
+*.db-shm
+*.db-wal
 images/
