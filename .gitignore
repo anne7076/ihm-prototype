@@ -11,7 +11,8 @@ logs/
 *.log
 .claude-replay.*
 .tmp-*
-/.figma/design-context/
+.figma/
+USER_INTERACTION_FLOW.md
 
 # Platform-managed agentplat state, not project source. In the
 # client-initiated single-repo workspace layout (make's `Path: "."` spec) the
