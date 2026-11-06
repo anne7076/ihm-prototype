@@ -88,10 +88,17 @@ export async function getDatabase(): Promise<Database> {
           imageUrl TEXT NOT NULL,
           multiple INTEGER DEFAULT 0,
           isFavorite INTEGER DEFAULT 0,
+          secondaryTags TEXT DEFAULT '',
           FOREIGN KEY(creatorId) REFERENCES creators(id),
           FOREIGN KEY(tag) REFERENCES tags(id)
         );
       `);
+
+      try {
+        db.run("ALTER TABLE events ADD COLUMN secondaryTags TEXT DEFAULT ''");
+      } catch {
+        // La colonne existe déjà
+      }
 
       // Vérifier si la base doit être peuplée
       const tagCountRes = db.exec("SELECT COUNT(*) FROM tags");
@@ -191,32 +198,47 @@ export async function getAllEvents(): Promise<Event[]> {
     SELECT
       id, dateStr, hour, title, creatorId, tag, description, color, textColor,
       timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
-      imageUrl, multiple, isFavorite
+      imageUrl, multiple, isFavorite, secondaryTags
     FROM events
     ORDER BY dateStr, hour
   `);
   if (!res.length) return [];
-  return res[0].values.map((row) => ({
-    id: row[0] as string,
-    dateStr: row[1] as string,
-    hour: row[2] as string,
-    title: row[3] as string,
-    creatorId: (row[4] as string) || undefined,
-    tag: row[5] as string,
-    description: (row[6] as string) || "",
-    color: row[7] as string,
-    textColor: row[8] as string,
-    timeRange: row[9] as string,
-    venueName: row[10] as string,
-    venueAddress: row[11] as string,
-    lat: (row[12] as number) ?? 48.1113,
-    lng: (row[13] as number) ?? -1.6800,
-    officialSiteUrl: (row[14] as string) || undefined,
-    ticketingUrl: (row[15] as string) || undefined,
-    imageUrl: row[16] as string,
-    multiple: Boolean(row[17]),
-    isFavorite: Boolean(row[18]),
-  }));
+  return res[0].values.map((row) => {
+    let secondaryTags: string[] = [];
+    const rawSec = row[19] as string | undefined;
+    if (rawSec) {
+      try {
+        secondaryTags = rawSec.startsWith("[")
+          ? JSON.parse(rawSec)
+          : rawSec.split(",").map((s) => s.trim()).filter(Boolean);
+      } catch {
+        secondaryTags = [];
+      }
+    }
+
+    return {
+      id: row[0] as string,
+      dateStr: row[1] as string,
+      hour: row[2] as string,
+      title: row[3] as string,
+      creatorId: (row[4] as string) || undefined,
+      tag: row[5] as string,
+      secondaryTags,
+      description: (row[6] as string) || "",
+      color: row[7] as string,
+      textColor: row[8] as string,
+      timeRange: row[9] as string,
+      venueName: row[10] as string,
+      venueAddress: row[11] as string,
+      lat: (row[12] as number) ?? 48.1113,
+      lng: (row[13] as number) ?? -1.6800,
+      officialSiteUrl: (row[14] as string) || undefined,
+      ticketingUrl: (row[15] as string) || undefined,
+      imageUrl: row[16] as string,
+      multiple: Boolean(row[17]),
+      isFavorite: Boolean(row[18]),
+    };
+  });
 }
 
 export async function toggleFollowCreator(id: string): Promise<boolean> {
@@ -259,8 +281,8 @@ export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise
     INSERT INTO events (
       id, dateStr, hour, title, creatorId, tag, description, color, textColor,
       timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
-      imageUrl, multiple, isFavorite
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+      imageUrl, multiple, isFavorite, secondaryTags
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
     `,
     [
       id,
@@ -281,6 +303,7 @@ export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise
       event.ticketingUrl ?? null,
       event.imageUrl,
       event.multiple ? 1 : 0,
+      JSON.stringify(event.secondaryTags || []),
     ]
   );
   saveDatabaseToLocalStorage(db);
@@ -289,5 +312,21 @@ export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise
     ...event,
     id,
     isFavorite: false,
+  };
+}
+
+export async function addTag(tag: { id: string; name: string; color: string }): Promise<Tag> {
+  const db = await getDatabase();
+  db.run("INSERT OR REPLACE INTO tags (id, name, color) VALUES (?, ?, ?)", [
+    tag.id,
+    tag.name,
+    tag.color,
+  ]);
+  saveDatabaseToLocalStorage(db);
+
+  return {
+    id: tag.id,
+    name: tag.name,
+    color: tag.color,
   };
 }

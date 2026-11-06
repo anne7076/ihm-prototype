@@ -7,7 +7,9 @@ import {
   toggleFollowCreator,
   toggleFavoriteEvent,
   addEvent,
+  addTag,
 } from "./db";
+import { matchesFuzzy } from "./utils/fuzzy";
 import {
   getWeekDays,
   getWeekOffsetForDate,
@@ -84,34 +86,33 @@ export default function App() {
   const toggleTag = (id: string) =>
     setActiveTags((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
 
-  const terms = useMemo(
-    () => query.toLowerCase().split(/\s+/).filter(Boolean),
-    [query]
-  );
-
   const matchesQuery = (e: Event) => {
-    if (!terms.length || e.multiple) return true;
+    if (!query.trim() || e.multiple) return true;
     const creatorName = e.creatorId ? creatorById[e.creatorId]?.name ?? "" : "";
-    const haystack = `${e.title ?? ""} #${e.tag ?? ""} ${e.venueName ?? ""} ${creatorName}`.toLowerCase();
-    return terms.every((t) => haystack.includes(t));
+    const allTags = [e.tag, ...(e.secondaryTags || [])];
+    const tagsSearchString = allTags.map((t) => `#${t} ${t}`).join(" ");
+    return matchesFuzzy(
+      query,
+      e.title,
+      tagsSearchString,
+      e.venueName,
+      e.venueAddress,
+      creatorName,
+      e.description
+    );
   };
-
-  const searchedTags = useMemo(
-    () => tags.filter((t) => terms.includes(`#${t.id}`)),
-    [tags, terms]
-  );
 
   const tagFilterActive = (event: Event): boolean => {
     if (event.multiple) return true;
-    const active = [...activeTags, ...searchedTags.map((t) => t.id)];
-    if (active.length === 0) return true;
-    return active.includes(event.tag ?? "");
+    if (activeTags.length === 0) return true;
+    const allTags = [event.tag, ...(event.secondaryTags || [])];
+    return allTags.some((t) => activeTags.includes(t));
   };
 
-  // Filtrage combiné des événements
+  // Filtrage combiné des événements avec recherche floue en direct
   const filteredEvents = useMemo(
     () => events.filter((e) => tagFilterActive(e) && matchesQuery(e)),
-    [events, activeTags, searchedTags, terms]
+    [events, activeTags, query, creatorById]
   );
 
   // Jours de la semaine courante
@@ -152,6 +153,13 @@ export default function App() {
     await toggleFavoriteEvent(id);
     const updatedEvents = await getAllEvents();
     setEvents(updatedEvents);
+  };
+
+  const handleAddTag = async (tagData: { id: string; name: string; color: string }): Promise<Tag> => {
+    const newTag = await addTag(tagData);
+    const updatedTags = await getAllTags();
+    setTags(updatedTags);
+    return newTag;
   };
 
   const handleCreateEvent = async (eventData: Omit<Event, "id" | "isFavorite">) => {
@@ -214,13 +222,6 @@ export default function App() {
         query={query}
         onQueryChange={setQuery}
         tags={tags}
-        activeTags={activeTags}
-        searchedTags={searchedTags}
-        onToggleTag={toggleTag}
-        onClearFilters={() => {
-          setActiveTags([]);
-          setQuery("");
-        }}
         activeScreen={activeView === "map" ? 4 : 1}
         onToggleView={() => {
           if (activeView === "calendar") {
@@ -236,7 +237,7 @@ export default function App() {
       />
 
       {/* Corps de l'application */}
-      <div className="flex h-[calc(100vh-124px)] min-h-[596px]">
+      <div className="flex h-[calc(100vh-74px)] min-h-[596px]">
         {/* Barre latérale des créateurs */}
         <Sidebar creators={creators} onToggleFollow={handleToggleFollow} />
 
@@ -315,6 +316,7 @@ export default function App() {
       {isCreateModalOpen && (
         <EventFormModal
           tags={tags}
+          onAddTag={handleAddTag}
           onClose={() => setIsCreateModalOpen(false)}
           onSubmit={handleCreateEvent}
         />

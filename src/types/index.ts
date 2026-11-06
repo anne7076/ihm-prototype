@@ -20,7 +20,8 @@ export type Event = {
   hour: string; // ex: "19h00"
   title: string;
   creatorId?: string;
-  tag: string;
+  tag: string; // Genre prioritaire (définit la couleur d'affichage sur le calendrier)
+  secondaryTags?: string[]; // Genres/tags secondaires pris en compte dans le filtre et la recherche
   description: string;
   color: string;
   textColor: string;

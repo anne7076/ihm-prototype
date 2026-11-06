@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import type { Event } from "../../types";
 import { getWeekDays, getWeekLabel, hours } from "../../utils/formatters";
 import { ChevronIcon } from "../common/Icons";
@@ -28,6 +29,18 @@ export function CalendarView({
 }: CalendarViewProps) {
   const weekDays = getWeekDays(weekOffset);
   const weekTitle = getWeekLabel(weekOffset);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Positionner le focus par défaut à 17h00 (début des concerts et soirées)
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const index17 = hours.indexOf("17h00");
+      if (index17 !== -1) {
+        // Chaque case horaire mesure 62px
+        scrollContainerRef.current.scrollTop = index17 * 62;
+      }
+    }
+  }, []);
 
   return (
     <main className="flex min-w-0 flex-1 flex-col overflow-hidden bg-white">
@@ -92,17 +105,21 @@ export function CalendarView({
       </div>
 
       {/* Zone du calendrier à défilement vertical complet */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto scroll-smooth">
         <div
           className="grid grid-cols-[80px_repeat(7,minmax(0,1fr))]"
           style={{ gridAutoRows: "62px" }}
         >
-          {hours.flatMap((hour) => [
+          {hours.flatMap((hour) => {
+            const isEveningStart = hour === "17h00";
+            return [
             <div
               key={`${hour}-label`}
-              className="relative flex items-start justify-end border-r border-b border-[#eceef0] bg-[#fbfbfc] pr-3 pt-2"
+              className={`relative flex items-start justify-end border-r border-b border-[#eceef0] pr-3 pt-2 ${
+                isEveningStart ? "bg-[#fff5f6]" : "bg-[#fbfbfc]"
+              }`}
             >
-              <span className="text-[11px] font-medium text-[#8c939d]">
+              <span className={`text-[11px] ${isEveningStart ? "font-bold text-[#dd4052]" : "font-medium text-[#8c939d]"}`}>
                 {hour}
               </span>
             </div>,
@@ -114,8 +131,8 @@ export function CalendarView({
                 <div
                   key={`${day.name}-${hour}`}
                   className={`min-h-0 border-r border-b border-[#eceef0] p-[3px] last:border-r-0 transition-colors hover:bg-[#fafbfc] ${
-                    event ? "cursor-pointer" : ""
-                  }`}
+                    isEveningStart ? "bg-[#fffefe]/50" : ""
+                  } ${event ? "cursor-pointer" : ""}`}
                   onClick={() => event && onSelectEvent(event)}
                 >
                   {event && (
@@ -130,7 +147,8 @@ export function CalendarView({
                 </div>
               );
             }),
-          ])}
+          ];
+          })}
         </div>
       </div>
     </main>

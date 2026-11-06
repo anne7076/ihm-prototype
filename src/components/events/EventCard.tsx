@@ -53,12 +53,22 @@ export function EventCard({
     >
       <div className="flex flex-col p-8">
         <div>
-          <span
-            className="inline-flex rounded-md px-2.5 py-1 text-[11px] font-bold tracking-[0.08em] uppercase"
-            style={{ backgroundColor: `${event.textColor}18`, color: event.textColor }}
-          >
-            #{event.tag}
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span
+              className="inline-flex rounded-md px-2.5 py-1 text-[11px] font-bold tracking-[0.08em] uppercase"
+              style={{ backgroundColor: `${event.textColor}18`, color: event.textColor }}
+            >
+              #{event.tag}
+            </span>
+            {event.secondaryTags?.map((sec) => (
+              <span
+                key={sec}
+                className="inline-flex rounded-md border border-[#e2e5e8] bg-[#f8f9fa] px-2 py-0.5 text-[10px] font-bold text-[#606772] uppercase"
+              >
+                #{sec}
+              </span>
+            ))}
+          </div>
           <h3 className="mt-4 text-[25px] font-bold leading-tight tracking-[-0.025em] text-[#22262c]">
             {event.title}
           </h3>

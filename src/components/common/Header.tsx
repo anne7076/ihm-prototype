@@ -1,15 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { SearchIcon, MenuIcon, PinIcon, CloseIcon } from "./Icons";
 import type { Tag } from "../../types";
+import { filterAndRankFuzzy } from "../../utils/fuzzy";
 
 interface HeaderProps {
   query: string;
   onQueryChange: (q: string) => void;
-  tags: Tag[];
-  activeTags: string[];
-  searchedTags: Tag[];
-  onToggleTag: (id: string) => void;
-  onClearFilters: () => void;
+  tags?: Tag[];
   activeScreen: 1 | 2 | 3 | 4 | 5;
   onToggleView: () => void;
   onOpenCreateModal: () => void;
@@ -20,11 +17,7 @@ interface HeaderProps {
 export function Header({
   query,
   onQueryChange,
-  tags,
-  activeTags,
-  searchedTags,
-  onToggleTag,
-  onClearFilters,
+  tags = [],
   activeScreen,
   onToggleView,
   onOpenCreateModal,
@@ -32,21 +25,33 @@ export function Header({
   followedCount = 0,
 }: HeaderProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
       }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSuggestionsOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Suggestions de tags/genres uniquement (filtre propre et ciblé)
+  const matchingTags = useMemo(() => {
+    if (!query.trim() || !tags.length) return [];
+    const cleanQ = query.replace(/^#/, "");
+    return filterAndRankFuzzy(tags, cleanQ, (t) => `${t.name} #${t.id}`).slice(0, 6);
+  }, [tags, query]);
+
   return (
-    <header className="grid h-[124px] grid-cols-[1fr_auto_1fr] items-center border-b border-[#e5e7eb] bg-white px-6">
-      <div className="flex min-w-0 items-center gap-3.5">
+    <header className="grid h-[74px] grid-cols-[auto_1fr_auto] items-center border-b border-[#e5e7eb] bg-white px-6 gap-6">
+      <div className="flex shrink-0 items-center gap-3.5">
         <button
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#555d68] transition-colors hover:bg-[#f3f4f6]"
           aria-label="Ouvrir le menu"
@@ -67,71 +72,81 @@ export function Header({
         </span>
       </div>
 
-      <div className="mx-5 flex flex-col gap-2">
-        <label className="flex h-11 items-center gap-3 rounded-xl border border-[#e2e5e9] bg-[#f8f9fa] px-4 text-[#8b929c] transition focus-within:border-[#ff8a98] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff4e64]/5">
-          <SearchIcon className="h-[19px] w-[19px] shrink-0" />
+      <div className="relative mx-auto w-full max-w-[560px]" ref={searchContainerRef}>
+        <label className="relative flex h-11 items-center gap-3 rounded-xl border border-[#e2e5e9] bg-[#f8f9fa] px-4 text-[#8b929c] transition focus-within:border-[#ff8a98] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff4e64]/5">
+          <SearchIcon className="h-[18px] w-[18px] shrink-0 text-[#8b929c]" />
           <input
             className="min-w-0 flex-1 bg-transparent text-[14px] text-[#30353b] outline-none placeholder:text-[#9ba1aa]"
-            placeholder="#rock #electro ou nom d'un créateur..."
-            aria-label="Rechercher par tag ou par créateur"
+            placeholder="Filtrer par tag ou genre musical (#rock, #electro)..."
+            aria-label="Recherche de tags en direct"
             value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
+            onChange={(e) => {
+              onQueryChange(e.target.value);
+              setIsSuggestionsOpen(true);
+            }}
+            onFocus={() => setIsSuggestionsOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setIsSuggestionsOpen(false);
+              }
+            }}
           />
-        </label>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#9ba1aa]">
-            Tags
-          </span>
-          {tags.map((tag) => {
-            const checked = activeTags.includes(tag.id);
-            return (
-              <button
-                key={tag.id}
-                type="button"
-                onClick={() => onToggleTag(tag.id)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
-                  checked
-                    ? "border-transparent text-white shadow-sm"
-                    : "border-[#e2e5e9] bg-white text-[#555c65] hover:bg-[#f6f7f8]"
-                }`}
-                style={checked ? { backgroundColor: tag.color } : undefined}
-              >
-                <i
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: checked ? "rgba(255,255,255,0.9)" : tag.color }}
-                />
-                #{tag.id}
-                {checked && <CloseIcon className="ml-0.5 h-2.5 w-2.5" />}
-              </button>
-            );
-          })}
-          {searchedTags.length > 0 && (
-            <>
-              <span className="mx-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#9ba1aa]">
-                Cherché
-              </span>
-              {searchedTags.map((tag) => (
-                <span
-                  key={`search-${tag.id}`}
-                  className="inline-flex items-center gap-1 rounded-full bg-[#fff2f4] px-2.5 py-1 text-[11px] font-bold text-[#dd4052] ring-1 ring-[#ffd2d8]"
-                >
-                  <i className="h-2 w-2 rounded-full" style={{ backgroundColor: tag.color }} />
-                  #{tag.id}
-                </span>
-              ))}
-            </>
-          )}
-          {(activeTags.length > 0 || searchedTags.length > 0 || query) && (
+          {query && (
             <button
               type="button"
-              onClick={onClearFilters}
-              className="ml-1 text-[11px] font-semibold text-[#8a9099] underline-offset-2 hover:text-[#dd4052] hover:underline"
+              onClick={() => {
+                onQueryChange("");
+                setIsSuggestionsOpen(false);
+              }}
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-[#e2e5e9] text-[#555d68] hover:bg-[#d0d4da] transition"
+              aria-label="Effacer la recherche"
+              title="Effacer la recherche"
             >
-              Tout effacer
+              <CloseIcon className="h-3 w-3" />
             </button>
           )}
-        </div>
+        </label>
+
+        {/* Liste déroulante de suggestions de tags "as you type" */}
+        {isSuggestionsOpen && query.trim() && (
+          <div className="absolute left-0 right-0 top-full mt-2 z-[600] overflow-hidden rounded-2xl border border-[#e2e5e9] bg-white p-2 shadow-[0_16px_40px_rgba(20,25,32,0.18)]">
+            <div className="flex items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#9ba1aa]">
+              <span>Tags suggérés</span>
+              <span className="text-[10px] text-[#717882]">Filtre direct</span>
+            </div>
+
+            {matchingTags.length > 0 ? (
+              <div className="space-y-1">
+                {matchingTags.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      onQueryChange(`#${t.id}`);
+                      setIsSuggestionsOpen(false);
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition hover:bg-[#fff2f4] group"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <i className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                      <span className="text-[13px] font-bold text-[#222730] group-hover:text-[#dd4052]">
+                        #{t.id}
+                      </span>
+                      <span className="text-[12px] text-[#717882]">({t.name})</span>
+                    </span>
+                    <span className="text-[11px] font-semibold text-[#dd4052] opacity-0 group-hover:opacity-100 transition-opacity">
+                      Filtrer par ce tag →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="px-3 py-2 text-[12px] text-[#8e95a0]">
+                Aucun tag correspondant à « {query} ».
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-2.5">

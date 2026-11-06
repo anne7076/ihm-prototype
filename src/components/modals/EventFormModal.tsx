@@ -1,24 +1,39 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import type { Tag, Event } from "../../types";
 import { PinIcon } from "../common/Icons";
+import { filterAndRankFuzzy, normalizeText } from "../../utils/fuzzy";
 
 interface EventFormModalProps {
   tags: Tag[];
+  onAddTag: (tag: { id: string; name: string; color: string }) => Promise<Tag>;
   onClose: () => void;
   onSubmit: (event: Omit<Event, "id" | "isFavorite">) => Promise<void>;
 }
 
-// Emplacements connus et vérifiés à Rennes avec coordonnées réelles
-const KNOWN_VENUES = [
-  { name: "L'Ubu", address: "1 Rue Saint-Hélier, 35000 Rennes", lat: 48.1077, lng: -1.6738 },
-  { name: "L'Étage", address: "1 Esplanade Charles de Gaulle, 35000 Rennes", lat: 48.1054, lng: -1.6775 },
-  { name: "L'Antipode", address: "75 Avenue Jules Maniez, 35000 Rennes", lat: 48.0988, lng: -1.7126 },
-  { name: "Chez Gilbert", address: "Place Sainte-Anne, 35000 Rennes", lat: 48.1144, lng: -1.6808 },
-  { name: "Le Bar'Hic", address: "24 Place des Lices, 35000 Rennes", lat: 48.1128, lng: -1.6839 },
-  { name: "Parc du Thabor & Kiosque", address: "Place Saint-Melaine, 35000 Rennes", lat: 48.1145, lng: -1.6702 },
-  { name: "Le Liberté", address: "1 Esplanade Charles de Gaulle, 35000 Rennes", lat: 48.1058, lng: -1.6769 },
-  { name: "Le Jardin Moderne", address: "11 Rue du Manoir de Servigné, 35000 Rennes", lat: 48.1015, lng: -1.7328 },
+const GENRE_PALETTE = [
+  "#ef5a5a", // Rouge / Rock
+  "#4e8ff7", // Bleu / Electro
+  "#f3c84b", // Jaune doré / Jazz
+  "#a86ae3", // Violet / Pop
+  "#55ae78", // Vert / Reggae
+  "#ec4899", // Rose fuchsia / Disco / Indie
+  "#f97316", // Orange / Funk / Soul
+  "#06b6d4", // Cyan / Synthwave
+  "#8b5cf6", // Indigo / Metal
+  "#14b8a6", // Teal / Folk
+  "#6366f1", // Iris / Hip-hop
+  "#d97706", // Ambre / Blues
+  "#84cc16", // Lime / Punk
 ];
+
+function generateGenreColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % GENRE_PALETTE.length;
+  return GENRE_PALETTE[index];
+}
 
 interface AddressSuggestion {
   label: string;
@@ -29,17 +44,126 @@ interface AddressSuggestion {
   lng: number;
 }
 
-export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps) {
+export function EventFormModal({ tags, onAddTag, onClose, onSubmit }: EventFormModalProps) {
   const [title, setTitle] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("rock");
-  const [secondaryTags, setSecondaryTags] = useState("");
+  const [secondaryTags, setSecondaryTags] = useState<string[]>([]);
   const [dateStr, setDateStr] = useState<string>("2026-10-16");
   const [startTime, setStartTime] = useState("20h30");
   const [endTime, setEndTime] = useState("23h30");
 
-  // Mode de saisie de lieu : "known" (sélection rapide) ou "custom" (recherche géocodée)
-  const [venueMode, setVenueMode] = useState<"known" | "custom">("known");
-  const [venueIndex, setVenueIndex] = useState<number>(0);
+  // Combobox genre musical prioritaire
+  const [genreSearch, setGenreSearch] = useState("");
+  const [isGenreOpen, setIsGenreOpen] = useState(false);
+  const genreDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Combobox genres secondaires (multi-genres)
+  const [secondarySearch, setSecondarySearch] = useState("");
+  const [isSecondaryOpen, setIsSecondaryOpen] = useState(false);
+  const secondaryDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (genreDropdownRef.current && !genreDropdownRef.current.contains(e.target as Node)) {
+        setIsGenreOpen(false);
+      }
+      if (secondaryDropdownRef.current && !secondaryDropdownRef.current.contains(e.target as Node)) {
+        setIsSecondaryOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const currentTagObj = tags.find((t) => t.id === selectedTag) || tags[0];
+
+  const filteredGenres = useMemo(() => {
+    if (!genreSearch.trim()) return tags;
+    return filterAndRankFuzzy(tags, genreSearch, (t) => `${t.name} #${t.id}`);
+  }, [tags, genreSearch]);
+
+  const exactGenreExists = useMemo(() => {
+    const q = normalizeText(genreSearch);
+    if (!q) return true;
+    return tags.some((t) => normalizeText(t.name) === q || normalizeText(t.id) === q);
+  }, [tags, genreSearch]);
+
+  const handleSelectGenre = (tagId: string) => {
+    setSelectedTag(tagId);
+    // Si ce genre était dans les secondaires, on le retire
+    setSecondaryTags((prev) => prev.filter((id) => id !== tagId));
+    setGenreSearch("");
+    setIsGenreOpen(false);
+  };
+
+  const handleCreateNewGenre = async () => {
+    const trimmed = genreSearch.trim();
+    if (!trimmed) return;
+    const cleanId =
+      normalizeText(trimmed)
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || `genre-${Date.now()}`;
+    const color = generateGenreColor(trimmed);
+    const newTag = await onAddTag({
+      id: cleanId,
+      name: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
+      color,
+    });
+    setSelectedTag(newTag.id);
+    setGenreSearch("");
+    setIsGenreOpen(false);
+  };
+
+  // Gestion des tags secondaires
+  const filteredSecondaryTags = useMemo(() => {
+    if (!secondarySearch.trim()) return tags;
+    return filterAndRankFuzzy(tags, secondarySearch, (t) => `${t.name} #${t.id}`);
+  }, [tags, secondarySearch]);
+
+  const handleToggleSecondaryTag = (tagId: string) => {
+    if (tagId === selectedTag) return; // Ne pas doubler avec le prioritaire
+    setSecondaryTags((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+    setSecondarySearch("");
+  };
+
+  const handleRemoveSecondaryTag = (tagId: string) => {
+    setSecondaryTags((prev) => prev.filter((id) => id !== tagId));
+  };
+
+  const handlePromoteToPrimary = (tagId: string) => {
+    const oldPrimary = selectedTag;
+    setSelectedTag(tagId);
+    setSecondaryTags((prev) => [
+      ...prev.filter((id) => id !== tagId),
+      oldPrimary,
+    ]);
+  };
+
+  const handleAddCustomSecondaryTag = async () => {
+    const trimmed = secondarySearch.trim();
+    if (!trimmed) return;
+    const cleanId =
+      normalizeText(trimmed)
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || `genre-${Date.now()}`;
+    const color = generateGenreColor(trimmed);
+    const newTag = await onAddTag({
+      id: cleanId,
+      name: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
+      color,
+    });
+    if (!secondaryTags.includes(newTag.id) && newTag.id !== selectedTag) {
+      setSecondaryTags((prev) => [...prev, newTag.id]);
+    }
+    setSecondarySearch("");
+    setIsSecondaryOpen(false);
+  };
+
+  // Géolocalisation libre et autocomplétion GPS à Rennes
   const [customVenueName, setCustomVenueName] = useState("");
   const [addressQuery, setAddressQuery] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
@@ -55,7 +179,7 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
 
   // Autocomplétion d'adresses officielles via l'API Adresse nationale (gratuite, instantanée, sans clé API)
   useEffect(() => {
-    if (venueMode !== "custom" || addressQuery.trim().length < 3) {
+    if (addressQuery.trim().length < 3) {
       setAddressSuggestions([]);
       return;
     }
@@ -89,7 +213,7 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
     }, 280);
 
     return () => clearTimeout(timer);
-  }, [addressQuery, venueMode]);
+  }, [addressQuery]);
 
   // Gestion du téléversement d'image réel
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,29 +251,17 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
     try {
       const tagObj = tags.find((t) => t.id === selectedTag) || tags[0];
 
-      let venueName = "";
-      let venueAddress = "";
-      let lat = 48.1113;
-      let lng = -1.6800;
-
-      if (venueMode === "known") {
-        const venue = KNOWN_VENUES[venueIndex];
-        venueName = venue.name;
-        venueAddress = venue.address;
-        lat = venue.lat;
-        lng = venue.lng;
-      } else {
-        venueName = customVenueName.trim() || selectedAddress?.name || "Lieu rennais";
-        venueAddress = selectedAddress?.label || addressQuery || "Rennes, France";
-        lat = selectedAddress?.lat ?? 48.1113;
-        lng = selectedAddress?.lng ?? -1.6800;
-      }
+      const venueName = customVenueName.trim() || selectedAddress?.name || "Lieu rennais";
+      const venueAddress = selectedAddress?.label || addressQuery || "Rennes, France";
+      const lat = selectedAddress?.lat ?? 48.1113;
+      const lng = selectedAddress?.lng ?? -1.6800;
 
       await onSubmit({
         dateStr,
         hour: startTime.split("h")[0] ? `${startTime.split("h")[0]}h00` : "20h00",
         title: title.trim(),
         tag: selectedTag,
+        secondaryTags,
         description: description.trim() || "Concert live et soirée musicale à Rennes.",
         color: `${tagObj.color}25`,
         textColor: tagObj.color,
@@ -215,26 +327,266 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
                 />
               </label>
 
-              <fieldset>
-                <legend className="text-[12px] font-bold text-[#4c535c]">Genre musical</legend>
-                <div className="mt-1.5 grid grid-cols-5 gap-2">
-                  {tags.map((genre) => (
-                    <label key={genre.id} className="cursor-pointer">
-                      <input
-                        className="peer sr-only"
-                        type="radio"
-                        name="genre"
-                        checked={selectedTag === genre.id}
-                        onChange={() => setSelectedTag(genre.id)}
-                      />
-                      <span className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#e1e3e6] text-[10px] font-bold text-[#5e646d] transition peer-checked:border-[#ff9ba7] peer-checked:bg-[#fff4f5] peer-checked:text-[#d93e50]">
-                        <i className="h-2 w-2 rounded-full" style={{ backgroundColor: genre.color }} />
-                        {genre.name}
-                      </span>
+              {/* Genres musicaux : Prioritaire et Secondaires côte-à-côte */}
+              <div className="grid grid-cols-2 gap-3.5">
+                {/* Genre prioritaire (Principal - couleur affichée sur le calendrier) */}
+                <div className="relative" ref={genreDropdownRef}>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[12px] font-bold text-[#4c535c]">
+                      Genre prioritaire <span className="text-[#ff4e64]">*</span>
                     </label>
-                  ))}
+                    <span className="text-[10px] font-semibold text-[#7f8691]">
+                      (Couleur calendrier)
+                    </span>
+                  </div>
+
+                  <div
+                    className={`mt-1.5 flex h-10 w-full items-center gap-2 rounded-xl border bg-white px-3 transition cursor-pointer ${
+                      isGenreOpen
+                        ? "border-[#ff8a98] ring-4 ring-[#ff4e64]/5"
+                        : "border-[#dfe2e6] hover:border-[#ccd1d8]"
+                    }`}
+                    onClick={() => setIsGenreOpen(true)}
+                  >
+                    <span
+                      className="flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-bold text-white shadow-xs shrink-0"
+                      style={{ backgroundColor: currentTagObj?.color || "#ff4e64" }}
+                    >
+                      <i className="h-2 w-2 rounded-full bg-white/90" />
+                      #{currentTagObj?.id || selectedTag}
+                    </span>
+
+                    <input
+                      type="text"
+                      className="min-w-0 flex-1 bg-transparent text-[13px] text-[#343940] outline-none placeholder:text-[#9ea4ad]"
+                      placeholder="Filtrer ou ajouter..."
+                      value={genreSearch}
+                      onChange={(e) => {
+                        setGenreSearch(e.target.value);
+                        setIsGenreOpen(true);
+                      }}
+                      onFocus={() => setIsGenreOpen(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (filteredGenres.length > 0) {
+                            handleSelectGenre(filteredGenres[0].id);
+                          } else if (!exactGenreExists && genreSearch.trim()) {
+                            handleCreateNewGenre();
+                          }
+                        } else if (e.key === "Escape") {
+                          setIsGenreOpen(false);
+                        }
+                      }}
+                    />
+
+                    <svg
+                      className={`h-4 w-4 shrink-0 text-[#8c939d] transition-transform ${isGenreOpen ? "rotate-180" : ""}`}
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path d="m5 7.5 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+
+                  {/* Dropdown Genre prioritaire */}
+                  {isGenreOpen && (
+                    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-[#e2e5e9] bg-white p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.14)]">
+                      {!exactGenreExists && genreSearch.trim() && (
+                        <button
+                          type="button"
+                          onClick={handleCreateNewGenre}
+                          className="mb-1 flex w-full items-center justify-between rounded-lg bg-[#fff4f5] px-3 py-2 text-left text-[12px] font-bold text-[#dd4052] transition hover:bg-[#ffebee]"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#ff4e64] text-white text-[13px] font-bold">
+                              +
+                            </span>
+                            <span>Créer le genre « {genreSearch.trim()} »</span>
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider text-[#ff4e64] bg-white px-2 py-0.5 rounded-full border border-[#ffd2d8]">
+                            Nouveau
+                          </span>
+                        </button>
+                      )}
+
+                      <div className="space-y-0.5">
+                        {filteredGenres.map((g) => {
+                          const isSelected = selectedTag === g.id;
+                          return (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => handleSelectGenre(g.id)}
+                              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-[12px] transition ${
+                                isSelected
+                                  ? "bg-[#f4f7fb] font-bold text-[#1f2937]"
+                                  : "text-[#4b5563] hover:bg-[#f8f9fa]"
+                              }`}
+                            >
+                              <span className="flex items-center gap-2">
+                                <i className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: g.color }} />
+                                <span className="font-semibold">{g.name}</span>
+                                <span className="text-[11px] text-[#9ca3af]">#{g.id}</span>
+                              </span>
+                              {isSelected && (
+                                <span className="text-[10px] font-bold uppercase text-[#ff4e64] bg-[#fff0f2] px-2 py-0.5 rounded-md">
+                                  Prioritaire
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </fieldset>
+
+                {/* Genres & Tags secondaires (Multi-genres pour filtres) */}
+                <div className="relative" ref={secondaryDropdownRef}>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[12px] font-bold text-[#4c535c]">
+                      Tags secondaires
+                    </label>
+                    <span className="text-[10px] font-semibold text-[#7f8691]">
+                      (Recherche & Filtres)
+                    </span>
+                  </div>
+
+                  <div
+                    className={`mt-1.5 flex min-h-[40px] w-full flex-wrap items-center gap-1.5 rounded-xl border bg-white p-1.5 transition cursor-pointer ${
+                      isSecondaryOpen
+                        ? "border-[#ff8a98] ring-4 ring-[#ff4e64]/5"
+                        : "border-[#dfe2e6] hover:border-[#ccd1d8]"
+                    }`}
+                    onClick={() => setIsSecondaryOpen(true)}
+                  >
+                    {secondaryTags.map((secId) => {
+                      const tagItem = tags.find((t) => t.id === secId);
+                      return (
+                        <span
+                          key={secId}
+                          className="inline-flex items-center gap-1 rounded-full border border-[#e1e4e8] bg-[#f8f9fa] px-2 py-0.5 text-[11px] font-semibold text-[#374151]"
+                        >
+                          <i
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: tagItem?.color || "#888" }}
+                          />
+                          #{secId}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveSecondaryTag(secId);
+                            }}
+                            className="ml-0.5 rounded-full p-0.5 hover:bg-[#e5e7eb] text-[#6b7280]"
+                            title="Retirer ce tag secondaire"
+                          >
+                            ×
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePromoteToPrimary(secId);
+                            }}
+                            className="ml-0.5 text-[9px] font-bold text-[#ff4e64] hover:underline"
+                            title="Élire en genre prioritaire"
+                          >
+                            ↑ Élu
+                          </button>
+                        </span>
+                      );
+                    })}
+
+                    <input
+                      type="text"
+                      className="min-w-[90px] flex-1 bg-transparent px-1.5 text-[12px] text-[#343940] outline-none placeholder:text-[#9ea4ad]"
+                      placeholder={secondaryTags.length === 0 ? "Ajouter d'autres genres..." : "+ Autre"}
+                      value={secondarySearch}
+                      onChange={(e) => {
+                        setSecondarySearch(e.target.value);
+                        setIsSecondaryOpen(true);
+                      }}
+                      onFocus={() => setIsSecondaryOpen(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (filteredSecondaryTags.length > 0) {
+                            handleToggleSecondaryTag(filteredSecondaryTags[0].id);
+                          } else if (secondarySearch.trim()) {
+                            handleAddCustomSecondaryTag();
+                          }
+                        } else if (e.key === "Escape") {
+                          setIsSecondaryOpen(false);
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Dropdown Genres secondaires */}
+                  {isSecondaryOpen && (
+                    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-[#e2e5e9] bg-white p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.14)]">
+                      {secondarySearch.trim() &&
+                        !tags.some(
+                          (t) =>
+                            normalizeText(t.id) === normalizeText(secondarySearch) ||
+                            normalizeText(t.name) === normalizeText(secondarySearch)
+                        ) && (
+                          <button
+                            type="button"
+                            onClick={handleAddCustomSecondaryTag}
+                            className="mb-1 flex w-full items-center justify-between rounded-lg bg-[#f0f9ff] px-3 py-1.5 text-left text-[11px] font-bold text-[#0369a1] transition hover:bg-[#e0f2fe]"
+                          >
+                            <span>+ Créer et lier « {secondarySearch.trim()} »</span>
+                            <span className="text-[9px] uppercase tracking-wider bg-white px-2 py-0.5 rounded-full border border-[#bae6fd]">
+                              Nouveau tag
+                            </span>
+                          </button>
+                        )}
+
+                      <div className="space-y-0.5">
+                        {filteredSecondaryTags.map((g) => {
+                          const isSec = secondaryTags.includes(g.id);
+                          const isPrim = selectedTag === g.id;
+                          return (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => handleToggleSecondaryTag(g.id)}
+                              className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-[11px] transition ${
+                                isSec
+                                  ? "bg-[#fff0f2] font-bold text-[#dd4052]"
+                                  : "text-[#4b5563] hover:bg-[#f8f9fa]"
+                              }`}
+                            >
+                              <span className="flex items-center gap-2">
+                                <i className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: g.color }} />
+                                <span>{g.name}</span>
+                                <span className="text-[10px] text-[#9ca3af]">#{g.id}</span>
+                              </span>
+                              {isPrim ? (
+                                <span className="text-[9px] font-bold text-[#9ca3af]">
+                                  (Genre prioritaire)
+                                </span>
+                              ) : isSec ? (
+                                <span className="text-[10px] font-bold text-[#ff4e64]">
+                                  ✓ Inclus
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-[#9ca3af] hover:text-[#ff4e64]">
+                                  + Ajouter
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <div className="grid grid-cols-[1.2fr_1fr_1fr] gap-2.5">
                 <label className="block text-[12px] font-bold text-[#4c535c]">
@@ -274,109 +626,69 @@ export function EventFormModal({ tags, onClose, onSubmit }: EventFormModalProps)
                     <PinIcon className="h-4 w-4 text-[#ff4e64]" />
                     Lieu & Adresse à Rennes
                   </span>
-                  <div className="flex rounded-lg border border-[#e2e5e9] bg-white p-0.5 text-[10px] font-bold">
-                    <button
-                      type="button"
-                      onClick={() => setVenueMode("known")}
-                      className={`rounded px-2 py-1 transition ${
-                        venueMode === "known" ? "bg-[#ff4e64] text-white" : "text-[#626974]"
-                      }`}
-                    >
-                      Lieux connus
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVenueMode("custom")}
-                      className={`rounded px-2 py-1 transition ${
-                        venueMode === "custom" ? "bg-[#ff4e64] text-white" : "text-[#626974]"
-                      }`}
-                    >
-                      Adresse libre (GPS)
-                    </button>
-                  </div>
+                  {selectedAddress && (
+                    <span className="flex items-center gap-1 text-[11px] font-bold text-[#208343] bg-[#eef8f1] px-2.5 py-0.5 rounded-full">
+                      ✓ Validé avec GPS
+                    </span>
+                  )}
                 </div>
 
-                {venueMode === "known" ? (
+                <div className="space-y-2">
                   <div>
-                    <select
-                      value={venueIndex}
-                      onChange={(e) => setVenueIndex(Number(e.target.value))}
+                    <label className="block text-[11px] font-semibold text-[#666e79]">
+                      Nom de la salle, scène ou établissement
+                    </label>
+                    <input
+                      value={customVenueName}
+                      onChange={(e) => setCustomVenueName(e.target.value)}
                       className={inputClass}
-                    >
-                      {KNOWN_VENUES.map((v, i) => (
-                        <option key={v.name} value={i}>
-                          {v.name} — {v.address}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="mt-1.5 text-[11px] font-medium text-[#2d7e48] flex items-center gap-1">
-                      ✓ Coordonnées vérifiées : [{KNOWN_VENUES[venueIndex].lat}, {KNOWN_VENUES[venueIndex].lng}]
-                    </p>
+                      placeholder="Ex : L'Ubu, Antipode, 1988 Live Club, Place Sainte-Anne..."
+                    />
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div>
-                      <input
-                        value={customVenueName}
-                        onChange={(e) => setCustomVenueName(e.target.value)}
-                        className={inputClass}
-                        placeholder="Nom de la salle, bar ou scène (ex: 1988 Live Club)"
-                      />
-                    </div>
-                    <div className="relative">
-                      <input
-                        value={addressQuery}
-                        onChange={(e) => {
-                          setAddressQuery(e.target.value);
-                          setSelectedAddress(null);
-                        }}
-                        className={inputClass}
-                        placeholder="Tapez une rue ou adresse à Rennes (ex: Rue Saint-Malo)..."
-                      />
-                      {isSearchingAddress && (
-                        <span className="absolute right-3 top-3 text-[11px] text-[#8a929e]">
-                          Recherche...
-                        </span>
-                      )}
+                  <div className="relative">
+                    <label className="block text-[11px] font-semibold text-[#666e79]">
+                      Adresse postale (recherche interactive) <span className="text-[#ff4e64]">*</span>
+                    </label>
+                    <input
+                      required
+                      value={addressQuery}
+                      onChange={(e) => {
+                        setAddressQuery(e.target.value);
+                        setSelectedAddress(null);
+                      }}
+                      className={inputClass}
+                      placeholder="Tapez une rue, place ou adresse à Rennes (ex: 1 Rue Saint-Hélier)..."
+                    />
+                    {isSearchingAddress && (
+                      <span className="absolute right-3 top-8 text-[11px] text-[#8a929e]">
+                        Recherche GPS...
+                      </span>
+                    )}
 
-                      {addressSuggestions.length > 0 && !selectedAddress && (
-                        <ul className="absolute left-0 right-0 top-12 z-30 max-h-48 overflow-y-auto rounded-xl border border-[#dfe3e8] bg-white shadow-xl">
-                          {addressSuggestions.map((sug) => (
-                            <li
-                              key={sug.label}
-                              onClick={() => {
-                                setSelectedAddress(sug);
-                                setAddressQuery(sug.label);
-                                setAddressSuggestions([]);
-                              }}
-                              className="cursor-pointer px-3.5 py-2 text-[12px] hover:bg-[#fff2f4] hover:text-[#dd4052] transition border-b border-[#f2f4f6] last:border-b-0"
-                            >
-                              <p className="font-semibold">{sug.name}</p>
-                              <p className="text-[11px] text-[#7d8490]">{sug.postcode} {sug.city}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-
-                    {selectedAddress && (
-                      <p className="text-[11px] font-medium text-[#2d7e48] flex items-center gap-1">
-                        ✓ Adresse géocodée : [{selectedAddress.lat.toFixed(4)}, {selectedAddress.lng.toFixed(4)}]
-                      </p>
+                    {addressSuggestions.length > 0 && !selectedAddress && (
+                      <ul className="absolute left-0 right-0 top-full mt-1 z-30 max-h-48 overflow-y-auto rounded-xl border border-[#dfe3e8] bg-white shadow-xl">
+                        {addressSuggestions.map((sug) => (
+                          <li
+                            key={`${sug.lat}-${sug.lng}-${sug.label}`}
+                            onClick={() => {
+                              setSelectedAddress(sug);
+                              setAddressQuery(sug.label);
+                              if (!customVenueName) {
+                                setCustomVenueName(sug.name);
+                              }
+                              setAddressSuggestions([]);
+                            }}
+                            className="cursor-pointer px-3.5 py-2 text-[12px] hover:bg-[#fff2f4] hover:text-[#dd4052] transition border-b border-[#f2f4f6] last:border-b-0"
+                          >
+                            <p className="font-semibold text-[#20252c]">{sug.name}</p>
+                            <p className="text-[11px] text-[#7d8490]">{sug.postcode} {sug.city}</p>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
-                )}
+                </div>
               </div>
-
-              <label className="block text-[12px] font-bold text-[#4c535c]">
-                Tags secondaires (#)
-                <input
-                  value={secondaryTags}
-                  onChange={(e) => setSecondaryTags(e.target.value)}
-                  className={inputClass}
-                  placeholder="#gratuit #étudiant #découverte"
-                />
-              </label>
 
               <label className="block text-[12px] font-bold text-[#4c535c]">
                 Billetterie ou lien officiel

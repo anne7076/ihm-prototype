@@ -58,15 +58,20 @@ export function EventDetailModal({
         <div className="grid min-h-0 flex-1 grid-cols-[56%_44%]">
           <div className="min-h-0 overflow-y-auto px-10 py-8">
             <div className="mb-5 flex flex-wrap gap-2">
-              <span className="rounded-md bg-[#ff4e64]/10 px-2.5 py-1 text-[10px] font-bold tracking-[0.07em] text-[#df3f52] uppercase">
-                #{event.tag}
+              <span
+                className="rounded-md px-2.5 py-1 text-[10px] font-bold tracking-[0.07em] text-white uppercase shadow-2xs"
+                style={{ backgroundColor: event.textColor }}
+              >
+                #{event.tag} · Prioritaire
               </span>
-              <span className="rounded-md bg-[#f0f1f3] px-2.5 py-1 text-[10px] font-bold tracking-[0.07em] text-[#656c75]">
-                #FESTIVAL
-              </span>
-              <span className="rounded-md bg-[#f0f1f3] px-2.5 py-1 text-[10px] font-bold tracking-[0.07em] text-[#656c75]">
-                #SCÈNELOCALE
-              </span>
+              {event.secondaryTags?.map((sec) => (
+                <span
+                  key={sec}
+                  className="rounded-md border border-[#e2e5e8] bg-[#f8f9fa] px-2.5 py-1 text-[10px] font-bold tracking-[0.07em] text-[#555d67] uppercase"
+                >
+                  #{sec}
+                </span>
+              ))}
             </div>
 
             <h2 id="event-detail-title" className="max-w-[490px] text-[36px] font-bold leading-[1.08] tracking-[-0.04em] text-[#20242a]">
