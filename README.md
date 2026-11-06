@@ -1,124 +1,53 @@
-# IHM Prototype — Rennes Live Music Discovery & Agenda
+# Agenda Musique Rennes — Application IHM
 
-An interactive Human-Computer Interaction (IHM / HCI) prototype designed for exploring and managing live music events, concerts, and festivals in Rennes, France. Built with React 19, Vite, and Tailwind CSS v4.
-
----
-
-## 📌 Project Overview
-
-This prototype explores UX/UI patterns for local cultural event discovery, combining map-based spatial navigation with schedule-based temporal planning. Users can browse upcoming concerts across genres (Rock, Electro, Jazz, Pop, Reggae), view venues and event details, and submit community events.
-
-### 🎯 Key Interactive Screens & Features
-
-The interface includes a bottom navigation switcher allowing rapid exploration of the 5 prototype screens:
-
-- **Écran 1 — Interactive Map View (`MapView`)**:
-  - Vector-based styled map of central Rennes (Place Sainte-Anne, République, Thabor, Les Lices, La Vilaine, Gare).
-  - Categorized map pins color-coded by musical genre and multi-event venue indicators.
-  - Interactive event popup card with quick navigation to event details.
-  - Day navigation selector.
-
-- **Écran 2 — Weekly Calendar & Agenda View**:
-  - Horizontal multi-day timeline with hourly schedule slots (10h00 to 02h00).
-  - Event cards mapped directly to time slots with genre color themes.
-  - Genre subscription toggles (Rock, Electro, Jazz, Pop, Reggae) to filter displayed events.
-
-- **Écran 3 — Search & Discovery Carousel**:
-  - Search input with tag filtering.
-  - Horizontal event card carousel featuring event imagery, time, genre tag, and favorite toggle.
-
-- **Écran 4 — Event Details View**:
-  - Dedicated rich detail view for events (e.g., *Festival Bars 'n Breizh* at L'Étage).
-  - Schedule breakdown, venue details, ticketing links, and external links.
-  - Direct shortcut to locate the event on the map.
-
-- **Écran 5 — Participatory Event Submission Modal (`EventFormModal`)**:
-  - Form dialog for community event submission.
-  - Event metadata inputs: Title, Primary Genre radio picker, secondary tags, date & time range.
-  - Address input with Rennes venue helper.
-  - Poster/artwork upload mockup drop zone and event description.
+Application web interactive d'exploration et de gestion d'événements musicaux, concerts et festivals à Rennes (Ille-et-Vilaine). Conçue selon les standards modernes de l'ingénierie IHM avec React 19, Vite, Leaflet et SQLite en WebAssembly.
 
 ---
 
-## 🛠️ Tech Stack
+## 📌 Fonctionnalités Clés
 
-- **Framework**: [React 19](https://react.dev/)
-- **Bundler & Dev Server**: [Vite 8](https://vite.dev/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) via `@tailwindcss/vite`
-- **Language**: [TypeScript 5.7](https://www.typescriptlang.org/)
-- **Code Formatting**: [oxfmt](https://oxc.rs/)
+- **📅 Calendrier Hebdomadaire Temporellement Cohérent** :
+  - Calendrier dynamique synchronisé par dates ISO réelles (`YYYY-MM-DD`).
+  - Navigation multi-semaines et pagination temporelle sans répétition artificielle d'événements.
+  - Filtres par genres musicaux (Rock, Electro, Jazz, Pop, Reggae) et recherche textuelle multi-critères (titre, artiste, lieu, tag).
 
----
+- **🗺️ Carte Interactive & Regroupement par Lieux (Clustering)** :
+  - Fond cartographique épuré haute lisibilité (Esri World Street Map, style Google Maps sans bruit visuel).
+  - Vue **"Toute la semaine"** affichant l'ensemble de la scène musicale rennaise, avec filtrage rapide par jour.
+  - Regroupement automatique par salle de concert / bar pour éliminer tout chevauchement de marqueurs.
+  - Popups riches multi-événements avec navigation directe vers les fiches détaillées.
 
-## 📂 Project Structure
+- **📍 Géocodage Officiel & Saisie d'Adresse Vérifiée** :
+  - Module d'ajout d'événement connecté à l'API Adresse Nationale (`api-adresse.data.gouv.fr`).
+  - Autocomplétion en temps réel sur les adresses rennaises (`citycode=35238`) avec extraction des coordonnées GPS certifiées.
+  - Sélection en un clic des salles emblématiques de Rennes (*L'Ubu, L'Étage, L'Antipode, Chez Gilbert, Le Bar'Hic, Le Liberté, Parc du Thabor, Le Jardin Moderne*).
 
-```text
-├── .figma/               # Figma Make configuration and tooling scripts
-├── public/               # Static assets & icons
-├── src/
-│   ├── App.tsx           # Main application prototype with views & interactive state
-│   ├── index.css         # Global stylesheet & Tailwind CSS v4 imports
-│   ├── main.tsx          # React application entrypoint
-│   └── vite-env.d.ts     # Vite TypeScript type declarations
-├── index.html            # Vite HTML document template
-├── package.json          # Project manifest and scripts
-├── pnpm-lock.yaml        # Deterministic package dependency lockfile
-├── tsconfig.json         # TypeScript compiler configuration
-└── vite.config.ts        # Vite build configuration & plugins
-```
+- **💾 Persistance des Données avec SQLite (WASM)** :
+  - Base de données locale relationnelle SQLite exécutée dans le navigateur via `sql.js` (WebAssembly).
+  - Gestion des abonnements aux créateurs/salles et des concerts favoris avec persistance automatique.
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Stack Technique
 
-### Prerequisites
+- **Frontend** : [React 19](https://react.dev/) + [TypeScript 5.7](https://www.typescriptlang.org/)
+- **Build & Dev Server** : [Vite 8](https://vite.dev/)
+- **Cartographie** : [Leaflet 1.9](https://leafletjs.com/) + [React-Leaflet 5](https://react-leaflet.js.org/) (Tuiles Esri World Street)
+- **Base de Données** : [SQLite](https://sqlite.org/) via `sql.js` (WASM)
+- **Styles** : [Tailwind CSS v4](https://tailwindcss.com/)
+- **Géocodage** : Base Adresse Nationale (BAN) via l'API Adresse officielle française
 
-- [Node.js](https://nodejs.org/) (v20+ recommended)
-- [pnpm](https://pnpm.io/) (or `npm` / `yarn`)
+---
 
-### Installation
+## 🚀 Démarrage Rapide
 
-1. Clone the repository and switch to the development branch:
-   ```bash
-   git clone https://github.com/anne7076/ihm-prototype.git
-   cd ihm-prototype
-   git checkout dev
-   ```
-
-2. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-
-3. Start the development server:
-   ```bash
-   pnpm run dev
-   ```
-   Open the local server URL provided in the console to view the prototype.
-
-### Build for Production
-
-To create an optimized production build:
 ```bash
+# Installation des dépendances
+pnpm install
+
+# Lancement du serveur de développement (http://localhost:8443)
+pnpm run dev
+
+# Construction de la version de production
 pnpm run build
 ```
-
-To preview the production build locally:
-```bash
-pnpm run preview
-```
-
----
-
-## 🌿 Git Branching Strategy
-
-This project adheres to standard industry Git flow:
-
-- **`main`**: Production-ready, stable releases.
-- **`dev`**: Active development branch where features and updates are integrated before release.
-
----
-
-## 📄 License
-
-Private / Academic project — INSA Rennes IHM Course.
