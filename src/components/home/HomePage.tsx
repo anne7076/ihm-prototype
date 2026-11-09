@@ -39,133 +39,155 @@ export function HomePage({
 
   return (
     <div className="h-full overflow-y-auto bg-[#f8f9fa] text-[#20252c]">
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 space-y-14">
-        {/* HERO SECTION : "Participez à la vie musicale rennaise !" */}
-        <section className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#181d26] via-[#242b38] to-[#12161f] p-8 sm:p-12 text-white shadow-[0_20px_50px_rgba(20,25,35,0.2)]">
-          {/* Cercles d'ambiance en arrière-plan */}
-          <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-[#ff4e64]/20 blur-3xl" />
-          <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-[#4e8ff7]/15 blur-3xl" />
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 space-y-10">
+        {/* HERO SECTION : Présentation et Événements Tendance CÔTE À CÔTE */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Côté Gauche : Description de l'application & 3 Piliers */}
+          <div className="lg:col-span-7 flex flex-col justify-between rounded-3xl border border-[#e5e7eb] bg-white p-7 sm:p-9 shadow-[0_8px_30px_rgba(20,25,35,0.05)]">
+            <div>
+              <span className="inline-block rounded-full bg-[#ff4e64]/10 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-[#ff4e64] mb-3">
+                Agenda Collaboratif · Rennes
+              </span>
 
-          <div className="relative z-10 max-w-3xl">
-            <span className="inline-block rounded-full bg-[#ff4e64]/20 px-4 py-1 text-[12px] font-bold uppercase tracking-wider text-[#ff8090] backdrop-blur-md mb-4">
-              Agenda Musical Collaboratif · Rennes
-            </span>
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1a1f27] leading-tight">
+                Participez à la vie{" "}
+                <span className="text-[#ff4e64]">musicale</span> rennaise !
+              </h1>
 
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-              Participez à la vie{" "}
-              <span className="text-[#ff5c72]">musicale</span> rennaise !
-            </h1>
+              <p className="mt-3 text-[14.5px] text-[#555d68] leading-relaxed">
+                La plateforme collaborative pour vivre au rythme des concerts,
+                découvrir les talents locaux et faire vibrer les scènes, bars et
+                festivals de Rennes Métropole.
+              </p>
 
-            <p className="mt-4 text-[15px] sm:text-[17px] text-[#c3cad4] leading-relaxed">
-              La plateforme collaborative pour vivre au rythme des concerts,
-              découvrir les artistes locaux et faire vibrer les salles et bars
-              de Rennes.
-            </p>
-
-            {/* Trois points clés de l'application */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-start gap-3 rounded-2xl bg-white/5 p-4 backdrop-blur-sm border border-white/10">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ff4e64]/20 text-[#ff7082] text-xl">
-                  🔔
-                </span>
-                <div>
-                  <h4 className="text-[14px] font-bold text-white">
-                    Alertes & favoris
-                  </h4>
-                  <p className="mt-1 text-[12px] text-[#a4adb8] leading-snug">
-                    Soyez prévenu des concerts de vos artistes et salles
-                    préférés.
-                  </p>
+              {/* 3 Piliers avec icônes SVG soignées (pas d'emojis) */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-start gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] p-3.5 transition hover:border-[#ff4e64]/30 hover:bg-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0f2] text-[#ff4e64]">
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-[13.5px] font-bold text-[#1e232b]">
+                      Alertes & favoris
+                    </h4>
+                    <p className="mt-0.5 text-[12px] text-[#6b7280] leading-snug">
+                      Soyez prévenu des concerts de vos artistes et de vos
+                      salles préférés.
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-3 rounded-2xl bg-white/5 p-4 backdrop-blur-sm border border-white/10">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#4e8ff7]/20 text-[#71a5f9] text-xl">
-                  🎸
-                </span>
-                <div>
-                  <h4 className="text-[14px] font-bold text-white">
-                    Découverte locale
-                  </h4>
-                  <p className="mt-1 text-[12px] text-[#a4adb8] leading-snug">
-                    Explorez de nouveaux talents, scènes underground et
-                    festivals rennais.
-                  </p>
+                <div className="flex items-start gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] p-3.5 transition hover:border-[#4e8ff7]/30 hover:bg-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef4ff] text-[#4e8ff7]">
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M9 18V5l12-2v13" />
+                      <circle cx="6" cy="18" r="3" />
+                      <circle cx="18" cy="16" r="3" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-[13.5px] font-bold text-[#1e232b]">
+                      Découverte locale
+                    </h4>
+                    <p className="mt-0.5 text-[12px] text-[#6b7280] leading-snug">
+                      Explorez la scène indépendante, les scènes underground et
+                      les nouveaux talents.
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-3 rounded-2xl bg-white/5 p-4 backdrop-blur-sm border border-white/10">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#55ae78]/20 text-[#7bd39e] text-xl">
-                  ➕
-                </span>
-                <div>
-                  <h4 className="text-[14px] font-bold text-white">
-                    Poster vos concerts
-                  </h4>
-                  <p className="mt-1 text-[12px] text-[#a4adb8] leading-snug">
-                    Ajoutez gratuitement vos propres événements avec
-                    localisation GPS.
-                  </p>
+                <div className="flex items-start gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] p-3.5 transition hover:border-[#55ae78]/30 hover:bg-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eff9f3] text-[#55ae78]">
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                      <line x1="12" y1="14" x2="12" y2="18" />
+                      <line x1="10" y1="16" x2="14" y2="16" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-[13.5px] font-bold text-[#1e232b]">
+                      Poster vos concerts
+                    </h4>
+                    <p className="mt-0.5 text-[12px] text-[#6b7280] leading-snug">
+                      Ajoutez gratuitement vos propres événements avec adresse
+                      GPS certifiée.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Boutons d'action rapides */}
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-7 flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={onNavigateToAgenda}
-                className="flex items-center gap-2 rounded-xl bg-[#ff4e64] px-6 py-3.5 text-[14px] font-bold text-white shadow-[0_6px_20px_rgba(255,78,100,0.35)] transition hover:bg-[#f23f56]"
+                className="flex items-center gap-2 rounded-xl bg-[#ff4e64] px-5 py-3 text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,78,100,0.28)] transition hover:bg-[#f23f56]"
               >
                 Explorer l'Agenda en direct →
               </button>
               <button
                 type="button"
                 onClick={onOpenCreateModal}
-                className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3.5 text-[14px] font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
+                className="flex items-center gap-2 rounded-xl border border-[#d8dce2] bg-white px-5 py-3 text-[13px] font-bold text-[#374151] transition hover:bg-[#f9fafb]"
               >
                 + Poster un événement
               </button>
             </div>
           </div>
-        </section>
 
-        {/* SECTION CARROUSEL : "Événement tendance à venir" */}
-        <section className="space-y-4">
-          <div className="flex items-end justify-between">
-            <div>
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#ff4e64]">
-                À ne pas manquer
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#1e232b]">
-                Événements tendance à venir
-              </h2>
-            </div>
-            <p className="hidden sm:block text-[13px] text-[#717882]">
-              Cliquez sur un concert pour consulter sa fiche détaillée
-            </p>
+          {/* Côté Droit : Événements Tendance à Venir (CÔTE À CÔTE) */}
+          <div className="lg:col-span-5 flex flex-col">
+            <TrendingCarousel
+              events={events}
+              tags={tags}
+              onSelectEvent={onSelectEvent}
+            />
           </div>
-
-          <TrendingCarousel
-            events={events}
-            tags={tags}
-            onSelectEvent={onSelectEvent}
-          />
         </section>
 
         {/* SECTION CRÉATEURS : "Découvrir des créateurs" avec recherche incrustée */}
-        <section className="space-y-6 rounded-[28px] border border-[#e5e7eb] bg-white p-6 sm:p-10 shadow-[0_10px_30px_rgba(20,25,32,0.03)]">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <section className="space-y-6 rounded-3xl border border-[#e5e7eb] bg-white p-6 sm:p-9 shadow-[0_8px_30px_rgba(20,25,35,0.04)]">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
             <div>
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#ff4e64]">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#ff4e64]">
                 Communauté & Lieux
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-[#1e232b]">
                 Découvrir des créateurs rennais
               </h2>
-              <p className="mt-1 text-[14px] text-[#6b7280]">
-                Artistes, salles emblématiques et bars musicaux qui font vibrer
-                la métropole.
+              <p className="mt-1 text-[13.5px] text-[#6b7280]">
+                Artistes, scènes mythiques et bars musicaux de la métropole.
               </p>
             </div>
 
@@ -180,8 +202,8 @@ export function HomePage({
 
           {/* Recherche incrustée dans la section */}
           <form onSubmit={handleSearchSubmit} className="relative">
-            <div className="relative flex items-center rounded-2xl border border-[#e2e5e9] bg-[#f8f9fa] px-4 py-1 transition focus-within:border-[#ff4e64] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff4e64]/10 shadow-xs">
-              <SearchIcon className="h-5 w-5 text-[#8b929c]" />
+            <div className="relative flex items-center rounded-2xl border border-[#e2e5e9] bg-[#f8f9fa] px-4 py-1 transition focus-within:border-[#ff4e64] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff4e64]/10 shadow-2xs">
+              <SearchIcon className="h-4.5 w-4.5 text-[#8b929c]" />
               <input
                 type="text"
                 placeholder="Rechercher un artiste, une salle ou un bar rennais (ex: L'Ubu, Neon Pulse, L'Antipode)..."
@@ -198,7 +220,7 @@ export function HomePage({
             </div>
           </form>
 
-          {/* Grille de cartes de créateurs vedettes */}
+          {/* Grille de cartes de créateurs spacieuses sans écrasement */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {featuredCreators.map((creator) => {
               const creatorUpcoming = events.find(
@@ -224,14 +246,13 @@ export function HomePage({
           </div>
         </section>
 
-        {/* Footer simple et élégant */}
-        <footer className="border-t border-[#e5e7eb] pt-8 text-center text-[12px] text-[#8e95a0]">
+        {/* Footer simple et sobre */}
+        <footer className="border-t border-[#e5e7eb] pt-6 text-center text-[12px] text-[#8e95a0]">
           <p className="font-semibold text-[#555d68]">
             Agenda Musical Collaboratif – Rennes Métropole
           </p>
-          <p className="mt-1">
-            Développé pour l'IHM · INSA Rennes · Base de données SQLite locale
-            synchronisée
+          <p className="mt-0.5">
+            Projet IHM · INSA Rennes · Base SQLite locale
           </p>
         </footer>
       </div>
