@@ -1,14 +1,26 @@
-import type { Creator } from "../../types";
-import { initials } from "../../utils/formatters";
+import type { Creator } from "../../types"
+
+import { initials } from "../../utils/formatters"
 
 interface SidebarProps {
-  creators: Creator[];
-  onToggleFollow: (id: string) => void;
+  creators: Creator[]
+
+  onToggleFollow: (id: string) => void
+
+  onNavigateToCreators?: () => void
+
+  onSelectCreator?: (creator: Creator) => void
 }
 
-export function Sidebar({ creators, onToggleFollow }: SidebarProps) {
-  const followed = creators.filter((c) => c.isFollowed);
-  const suggested = creators.filter((c) => !c.isFollowed);
+export function Sidebar({
+  creators,
+  onToggleFollow,
+  onNavigateToCreators,
+  onSelectCreator,
+}: SidebarProps) {
+  const followed = creators.filter((c) => c.isFollowed)
+
+  const suggested = creators.filter((c) => !c.isFollowed)
 
   return (
     <aside className="flex w-[300px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
@@ -31,7 +43,9 @@ export function Sidebar({ creators, onToggleFollow }: SidebarProps) {
                     <span className="block truncate text-[13px] font-semibold text-[#414750]">
                       {creator.name}
                     </span>
-                    <span className="block text-[11px] text-[#8a9099]">{creator.kind}</span>
+                    <span className="block text-[11px] text-[#8a9099]">
+                      {creator.kind}
+                    </span>
                   </span>
                 </div>
                 <button
@@ -45,7 +59,9 @@ export function Sidebar({ creators, onToggleFollow }: SidebarProps) {
               </li>
             ))}
             {followed.length === 0 && (
-              <p className="py-2 text-[12px] text-[#9ba1aa]">Aucun abonnement pour le moment.</p>
+              <p className="py-2 text-[12px] text-[#9ba1aa]">
+                Aucun abonnement pour le moment.
+              </p>
             )}
           </ul>
         </section>
@@ -55,20 +71,30 @@ export function Sidebar({ creators, onToggleFollow }: SidebarProps) {
             <h2 className="text-[12px] font-bold uppercase tracking-[0.11em] text-[#7b828c]">
               Découvrir
             </h2>
-            <p className="mt-1 text-[11px] text-[#9298a0]">Populaires parmi tes abonnements</p>
+            <p className="mt-1 text-[11px] text-[#9298a0]">
+              Populaires parmi tes abonnements
+            </p>
             <ul className="mt-3 space-y-3">
               {suggested.map((creator) => (
                 <li key={creator.id} className="flex items-center gap-2.5">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eef0f2] text-[11px] font-bold text-[#5b626c]">
+                  <span
+                    onClick={() => onSelectCreator?.(creator)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eef0f2] text-[11px] font-bold text-[#5b626c] cursor-pointer hover:ring-2 hover:ring-[#ff4e64]/30"
+                  >
                     {initials(creator.name)}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-semibold text-[#414750]">
+                  <span
+                    onClick={() => onSelectCreator?.(creator)}
+                    className="min-w-0 flex-1 cursor-pointer"
+                  >
+                    <span className="block truncate text-[13px] font-semibold text-[#414750] hover:text-[#ff4e64]">
                       {creator.name}
                     </span>
                     <span className="block truncate text-[11px] text-[#8a9099]">
                       {creator.kind}
-                      {creator.mutuals ? ` · suivi par ${creator.mutuals} de vos abonnements` : ""}
+                      {creator.mutuals
+                        ? ` · suivi par ${creator.mutuals} de vos abonnements`
+                        : ""}
                     </span>
                   </span>
                   <button
@@ -83,7 +109,19 @@ export function Sidebar({ creators, onToggleFollow }: SidebarProps) {
             </ul>
           </section>
         )}
+
+        {onNavigateToCreators && (
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={onNavigateToCreators}
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#e2e5e9] bg-[#f8f9fa] py-2.5 text-[12px] font-bold text-[#555d68] transition hover:bg-[#eef1f4] hover:text-[#1f242c]"
+            >
+              Explorer l'annuaire des créateurs →
+            </button>
+          </div>
+        )}
       </div>
     </aside>
-  );
+  )
 }

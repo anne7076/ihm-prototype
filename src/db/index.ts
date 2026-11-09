@@ -1,58 +1,81 @@
-import initSqlJs, { type Database } from "sql.js";
-import type { Tag, Creator, Event } from "../types";
-import { initialTags, initialCreators, initialEvents } from "./seed";
+import initSqlJs, { type Database } from "sql.js"
 
-const STORAGE_KEY = "ihm_rennes_sqlite_db_v4";
+import type { Tag, Creator, Event } from "../types"
 
-let dbInstance: Database | null = null;
-let initPromise: Promise<Database> | null = null;
+import { initialTags, initialCreators, initialEvents } from "./seed"
+
+const STORAGE_KEY = "ihm_rennes_sqlite_db_v5"
+
+let dbInstance: Database | null = null
+
+let initPromise: Promise<Database> | null = null
 
 function saveDatabaseToLocalStorage(db: Database) {
   try {
-    const data = db.export();
-    let binaryString = "";
-    const len = data.byteLength;
+    const data = db.export()
+
+    let binaryString = ""
+
+    const len = data.byteLength
+
     for (let i = 0; i < len; i++) {
-      binaryString += String.fromCharCode(data[i]);
+      binaryString += String.fromCharCode(data[i])
     }
-    const base64 = btoa(binaryString);
-    localStorage.setItem(STORAGE_KEY, base64);
+
+    const base64 = btoa(binaryString)
+
+    localStorage.setItem(STORAGE_KEY, base64)
   } catch (error) {
-    console.error("Erreur lors de la sauvegarde SQLite dans localStorage:", error);
+    console.error(
+      "Erreur lors de la sauvegarde SQLite dans localStorage:",
+      error,
+    )
   }
 }
 
 export async function getDatabase(): Promise<Database> {
-  if (dbInstance) return dbInstance;
-  if (initPromise) return initPromise;
+  if (dbInstance) return dbInstance
+
+  if (initPromise) return initPromise
 
   initPromise = (async () => {
     try {
       const SQL = await initSqlJs({
         locateFile: () => "/sql-wasm.wasm",
-      });
+      })
 
-      const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-      let db: Database;
+      const saved =
+        typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null
+
+      let db: Database
 
       if (saved) {
         try {
-          const binaryString = atob(saved);
-          const len = binaryString.length;
-          const bytes = new Uint8Array(len);
+          const binaryString = atob(saved)
+
+          const len = binaryString.length
+
+          const bytes = new Uint8Array(len)
+
           for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+            bytes[i] = binaryString.charCodeAt(i)
           }
-          db = new SQL.Database(bytes);
+
+          db = new SQL.Database(bytes)
         } catch (err) {
-          console.warn("Échec du chargement du cache SQLite, réinitialisation:", err);
-          db = new SQL.Database();
+          console.warn(
+            "Échec du chargement du cache SQLite, réinitialisation:",
+            err,
+          )
+
+          db = new SQL.Database()
         }
       } else {
-        db = new SQL.Database();
+        db = new SQL.Database()
       }
 
       // Création des tables
+
       db.run(`
         CREATE TABLE IF NOT EXISTS tags (
           id TEXT PRIMARY KEY,
@@ -65,7 +88,12 @@ export async function getDatabase(): Promise<Database> {
           name TEXT NOT NULL,
           kind TEXT NOT NULL,
           mutuals INTEGER DEFAULT 0,
-          isFollowed INTEGER DEFAULT 0
+          isFollowed INTEGER DEFAULT 0,
+          bio TEXT,
+          avatarUrl TEXT,
+          followersCount INTEGER DEFAULT 0,
+          genreTag TEXT,
+          address TEXT
         );
 
         CREATE TABLE IF NOT EXISTS events (
@@ -92,108 +120,223 @@ export async function getDatabase(): Promise<Database> {
           FOREIGN KEY(creatorId) REFERENCES creators(id),
           FOREIGN KEY(tag) REFERENCES tags(id)
         );
-      `);
+      `)
 
       try {
-        db.run("ALTER TABLE events ADD COLUMN secondaryTags TEXT DEFAULT ''");
+        db.run("ALTER TABLE events ADD COLUMN secondaryTags TEXT DEFAULT ''")
       } catch {
         // La colonne existe déjà
       }
 
+      try {
+        db.run("ALTER TABLE creators ADD COLUMN bio TEXT")
+      } catch {}
+
+      try {
+        db.run("ALTER TABLE creators ADD COLUMN avatarUrl TEXT")
+      } catch {}
+
+      try {
+        db.run(
+          "ALTER TABLE creators ADD COLUMN followersCount INTEGER DEFAULT 0",
+        )
+      } catch {}
+
+      try {
+        db.run("ALTER TABLE creators ADD COLUMN genreTag TEXT")
+      } catch {}
+
+      try {
+        db.run("ALTER TABLE creators ADD COLUMN address TEXT")
+      } catch {}
+
       // Vérifier si la base doit être peuplée
-      const tagCountRes = db.exec("SELECT COUNT(*) FROM tags");
-      const count = (tagCountRes[0]?.values[0]?.[0] as number) ?? 0;
+
+      const tagCountRes = db.exec("SELECT COUNT(*) FROM tags")
+
+      const count = tagCountRes[0]?.values[0]?.[0] as number ?? 0
 
       if (count === 0) {
         // Insertion des tags
-        const insertTag = db.prepare("INSERT INTO tags (id, name, color) VALUES (?, ?, ?)");
+
+        const insertTag = db.prepare(
+          "INSERT INTO tags (id, name, color) VALUES (?, ?, ?)",
+        )
+
         for (const t of initialTags) {
-          insertTag.run([t.id, t.name, t.color]);
+          insertTag.run([t.id, t.name, t.color])
         }
-        insertTag.free();
+
+        insertTag.free()
 
         // Insertion des créateurs
-        const insertCreator = db.prepare("INSERT INTO creators (id, name, kind, mutuals, isFollowed) VALUES (?, ?, ?, ?, ?)");
+
+        const insertCreator = db.prepare(
+          "INSERT INTO creators (id, name, kind, mutuals, isFollowed, bio, avatarUrl, followersCount, genreTag, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+
         for (const c of initialCreators) {
-          insertCreator.run([c.id, c.name, c.kind, c.mutuals ?? 0, c.isFollowed ? 1 : 0]);
+          insertCreator.run([
+            c.id,
+
+            c.name,
+
+            c.kind,
+
+            c.mutuals ?? 0,
+
+            c.isFollowed ? 1 : 0,
+
+            c.bio ?? null,
+
+            c.avatarUrl ?? null,
+
+            c.followersCount ?? 0,
+
+            c.genreTag ?? null,
+
+            c.address ?? null,
+          ])
         }
-        insertCreator.free();
+
+        insertCreator.free()
 
         // Insertion des événements
+
         const insertEvent = db.prepare(`
           INSERT INTO events (
             id, dateStr, hour, title, creatorId, tag, description, color, textColor,
             timeRange, venueName, venueAddress, lat, lng, officialSiteUrl, ticketingUrl,
             imageUrl, multiple, isFavorite
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+        `)
 
         for (const e of initialEvents) {
           insertEvent.run([
             e.id,
-            e.dateStr,
-            e.hour,
-            e.title,
-            e.creatorId ?? null,
-            e.tag,
-            e.description,
-            e.color,
-            e.textColor,
-            e.timeRange,
-            e.venueName,
-            e.venueAddress,
-            e.lat,
-            e.lng,
-            e.officialSiteUrl ?? null,
-            e.ticketingUrl ?? null,
-            e.imageUrl,
-            e.multiple ? 1 : 0,
-            e.isFavorite ? 1 : 0,
-          ]);
-        }
-        insertEvent.free();
 
-        saveDatabaseToLocalStorage(db);
+            e.dateStr,
+
+            e.hour,
+
+            e.title,
+
+            e.creatorId ?? null,
+
+            e.tag,
+
+            e.description,
+
+            e.color,
+
+            e.textColor,
+
+            e.timeRange,
+
+            e.venueName,
+
+            e.venueAddress,
+
+            e.lat,
+
+            e.lng,
+
+            e.officialSiteUrl ?? null,
+
+            e.ticketingUrl ?? null,
+
+            e.imageUrl,
+
+            e.multiple ? 1 : 0,
+
+            e.isFavorite ? 1 : 0,
+          ])
+        }
+
+        insertEvent.free()
+
+        saveDatabaseToLocalStorage(db)
       }
 
-      dbInstance = db;
-      return dbInstance;
-    } catch (e) {
-      console.error("FATAL SQL.JS INIT ERROR:", e);
-      throw e;
-    }
-  })();
+      dbInstance = db
 
-  return initPromise;
+      return dbInstance
+    } catch (e) {
+      console.error("FATAL SQL.JS INIT ERROR:", e)
+
+      throw e
+    }
+  })()
+
+  return initPromise
 }
 
 // Queries d'accès et mutations
+
 export async function getAllTags(): Promise<Tag[]> {
-  const db = await getDatabase();
-  const res = db.exec("SELECT id, name, color FROM tags ORDER BY id");
-  if (!res.length) return [];
+  const db = await getDatabase()
+
+  const res = db.exec("SELECT id, name, color FROM tags ORDER BY id")
+
+  if (!res.length) return []
+
   return res[0].values.map(([id, name, color]) => ({
     id: id as string,
+
     name: name as string,
+
     color: color as string,
-  }));
+  }))
 }
 
 export async function getAllCreators(): Promise<Creator[]> {
-  const db = await getDatabase();
-  const res = db.exec("SELECT id, name, kind, mutuals, isFollowed FROM creators");
-  if (!res.length) return [];
-  return res[0].values.map(([id, name, kind, mutuals, isFollowed]) => ({
-    id: id as string,
-    name: name as string,
-    kind: kind as Creator["kind"],
-    mutuals: mutuals as number,
-    isFollowed: Boolean(isFollowed),
-  }));
+  const db = await getDatabase()
+
+  const res = db.exec(
+    "SELECT id, name, kind, mutuals, isFollowed, bio, avatarUrl, followersCount, genreTag, address FROM creators",
+  )
+
+  if (!res.length) return []
+
+  return res[0].values.map(
+    ([
+      id,
+      name,
+      kind,
+      mutuals,
+      isFollowed,
+      bio,
+      avatarUrl,
+      followersCount,
+      genreTag,
+      address,
+    ]) => ({
+      id: id as string,
+
+      name: name as string,
+
+      kind: kind as Creator["kind"],
+
+      mutuals: mutuals as number ?? 0,
+
+      isFollowed: Boolean(isFollowed),
+
+      bio: bio as string || undefined,
+
+      avatarUrl: avatarUrl as string || undefined,
+
+      followersCount: followersCount as number ?? 0,
+
+      genreTag: genreTag as string || undefined,
+
+      address: address as string || undefined,
+    }),
+  )
 }
 
 export async function getAllEvents(): Promise<Event[]> {
-  const db = await getDatabase();
+  const db = await getDatabase()
+
   const res = db.exec(`
     SELECT
       id, dateStr, hour, title, creatorId, tag, description, color, textColor,
@@ -201,81 +344,133 @@ export async function getAllEvents(): Promise<Event[]> {
       imageUrl, multiple, isFavorite, secondaryTags
     FROM events
     ORDER BY dateStr, hour
-  `);
-  if (!res.length) return [];
+  `)
+
+  if (!res.length) return []
+
   return res[0].values.map((row) => {
-    let secondaryTags: string[] = [];
-    const rawSec = row[19] as string | undefined;
+    let secondaryTags: string[] = []
+
+    const rawSec = row[19] as string | undefined
+
     if (rawSec) {
       try {
         secondaryTags = rawSec.startsWith("[")
           ? JSON.parse(rawSec)
-          : rawSec.split(",").map((s) => s.trim()).filter(Boolean);
+          : rawSec
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
       } catch {
-        secondaryTags = [];
+        secondaryTags = []
       }
     }
 
     return {
       id: row[0] as string,
+
       dateStr: row[1] as string,
+
       hour: row[2] as string,
+
       title: row[3] as string,
-      creatorId: (row[4] as string) || undefined,
+
+      creatorId: row[4] as string || undefined,
+
       tag: row[5] as string,
+
       secondaryTags,
-      description: (row[6] as string) || "",
+
+      description: row[6] as string || "",
+
       color: row[7] as string,
+
       textColor: row[8] as string,
+
       timeRange: row[9] as string,
+
       venueName: row[10] as string,
+
       venueAddress: row[11] as string,
-      lat: (row[12] as number) ?? 48.1113,
-      lng: (row[13] as number) ?? -1.6800,
-      officialSiteUrl: (row[14] as string) || undefined,
-      ticketingUrl: (row[15] as string) || undefined,
+
+      lat: row[12] as number ?? 48.1113,
+
+      lng: row[13] as number ?? -1.68,
+
+      officialSiteUrl: row[14] as string || undefined,
+
+      ticketingUrl: row[15] as string || undefined,
+
       imageUrl: row[16] as string,
+
       multiple: Boolean(row[17]),
+
       isFavorite: Boolean(row[18]),
-    };
-  });
+    }
+  })
 }
 
 export async function toggleFollowCreator(id: string): Promise<boolean> {
-  const db = await getDatabase();
-  const stmt = db.prepare("SELECT isFollowed FROM creators WHERE id = ?");
-  stmt.bind([id]);
-  let nextState = true;
-  if (stmt.step()) {
-    const cur = stmt.getAsObject().isFollowed as number;
-    nextState = cur === 0;
-  }
-  stmt.free();
+  const db = await getDatabase()
 
-  db.run("UPDATE creators SET isFollowed = ? WHERE id = ?", [nextState ? 1 : 0, id]);
-  saveDatabaseToLocalStorage(db);
-  return nextState;
+  const stmt = db.prepare("SELECT isFollowed FROM creators WHERE id = ?")
+
+  stmt.bind([id])
+
+  let nextState = true
+
+  if (stmt.step()) {
+    const cur = stmt.getAsObject().isFollowed as number
+
+    nextState = cur === 0
+  }
+
+  stmt.free()
+
+  db.run("UPDATE creators SET isFollowed = ? WHERE id = ?", [
+    nextState ? 1 : 0,
+    id,
+  ])
+
+  saveDatabaseToLocalStorage(db)
+
+  return nextState
 }
 
 export async function toggleFavoriteEvent(id: string): Promise<boolean> {
-  const db = await getDatabase();
-  const stmt = db.prepare("SELECT isFavorite FROM events WHERE id = ?");
-  stmt.bind([id]);
-  let nextState = true;
-  if (stmt.step()) {
-    const cur = stmt.getAsObject().isFavorite as number;
-    nextState = cur === 0;
-  }
-  stmt.free();
+  const db = await getDatabase()
 
-  db.run("UPDATE events SET isFavorite = ? WHERE id = ?", [nextState ? 1 : 0, id]);
-  saveDatabaseToLocalStorage(db);
-  return nextState;
+  const stmt = db.prepare("SELECT isFavorite FROM events WHERE id = ?")
+
+  stmt.bind([id])
+
+  let nextState = true
+
+  if (stmt.step()) {
+    const cur = stmt.getAsObject().isFavorite as number
+
+    nextState = cur === 0
+  }
+
+  stmt.free()
+
+  db.run("UPDATE events SET isFavorite = ? WHERE id = ?", [
+    nextState ? 1 : 0,
+    id,
+  ])
+
+  saveDatabaseToLocalStorage(db)
+
+  return nextState
 }
 
-export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise<Event> {
-  const db = await getDatabase();
-  const id = `evt-${Date.now()}`;
+export async function addEvent(
+  event: Omit<Event, "id" | "isFavorite">,
+): Promise<Event> {
+  const db = await getDatabase()
+
+  const id = `evt-${Date.now()}`
+
   db.run(
     `
     INSERT INTO events (
@@ -284,49 +479,81 @@ export async function addEvent(event: Omit<Event, "id" | "isFavorite">): Promise
       imageUrl, multiple, isFavorite, secondaryTags
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
     `,
+
     [
       id,
+
       event.dateStr,
+
       event.hour,
+
       event.title,
+
       event.creatorId ?? null,
+
       event.tag,
+
       event.description,
+
       event.color,
+
       event.textColor,
+
       event.timeRange,
+
       event.venueName,
+
       event.venueAddress,
+
       event.lat,
+
       event.lng,
+
       event.officialSiteUrl ?? null,
+
       event.ticketingUrl ?? null,
+
       event.imageUrl,
+
       event.multiple ? 1 : 0,
+
       JSON.stringify(event.secondaryTags || []),
-    ]
-  );
-  saveDatabaseToLocalStorage(db);
+    ],
+  )
+
+  saveDatabaseToLocalStorage(db)
 
   return {
     ...event,
+
     id,
+
     isFavorite: false,
-  };
+  }
 }
 
-export async function addTag(tag: { id: string; name: string; color: string }): Promise<Tag> {
-  const db = await getDatabase();
+export async function addTag(tag: {
+  id: string
+  name: string
+  color: string
+}): Promise<Tag> {
+  const db = await getDatabase()
+
   db.run("INSERT OR REPLACE INTO tags (id, name, color) VALUES (?, ?, ?)", [
     tag.id,
+
     tag.name,
+
     tag.color,
-  ]);
-  saveDatabaseToLocalStorage(db);
+  ])
+
+  saveDatabaseToLocalStorage(db)
 
   return {
     id: tag.id,
+
     name: tag.name,
+
     color: tag.color,
-  };
+  }
 }

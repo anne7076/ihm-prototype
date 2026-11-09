@@ -1,4 +1,4 @@
-import type { Tag, Creator, Event } from "../types";
+import type { Tag, Creator, Event } from "../types"
 
 export const initialTags: Tag[] = [
   { id: "rock", name: "Rock", color: "#ef5a5a" },
@@ -6,18 +6,98 @@ export const initialTags: Tag[] = [
   { id: "jazz", name: "Jazz", color: "#f3c84b" },
   { id: "pop", name: "Pop", color: "#a86ae3" },
   { id: "reggae", name: "Reggae", color: "#55ae78" },
-];
+]
 
 export const initialCreators: Creator[] = [
-  { id: "etage", name: "L'Étage", kind: "Salle", isFollowed: true },
-  { id: "neon", name: "Neon Pulse", kind: "Artiste", isFollowed: true },
-  { id: "gilbert", name: "Chez Gilbert", kind: "Bar", isFollowed: true },
-  { id: "lola", name: "Lola Vance", kind: "Artiste", isFollowed: true },
-  { id: "antipode", name: "L'Antipode", kind: "Salle", isFollowed: true },
-  { id: "ubu", name: "L'Ubu", kind: "Salle", mutuals: 4, isFollowed: false },
-  { id: "moon", name: "Møon", kind: "Artiste", mutuals: 3, isFollowed: false },
-  { id: "barhic", name: "Le Bar'Hic", kind: "Bar", mutuals: 2, isFollowed: false },
-];
+  {
+    id: "etage",
+    name: "L'Étage",
+    kind: "Salle",
+    isFollowed: true,
+    followersCount: 1420,
+    genreTag: "rock",
+    address: "1 Esplanade Charles de Gaulle, 35000 Rennes",
+    bio: "Salle de concert moderne perchée au-dessus du Liberté, dédiée aux musiques actuelles, découvertes émergentes et têtes d'affiche rock et pop.",
+    avatarUrl: "/images/events/rock-concert.jpg",
+  },
+  {
+    id: "neon",
+    name: "Neon Pulse",
+    kind: "Artiste",
+    isFollowed: true,
+    followersCount: 890,
+    genreTag: "electro",
+    bio: "Duo rennais de synthwave et musique électronique modulaire créant des atmosphères cinématiques rétro-futuristes.",
+    avatarUrl: "/images/events/electro-lights.jpg",
+  },
+  {
+    id: "gilbert",
+    name: "Chez Gilbert",
+    kind: "Bar",
+    isFollowed: true,
+    followersCount: 650,
+    genreTag: "jazz",
+    address: "Place Sainte-Anne, 35000 Rennes",
+    bio: "Bistrot chaleureux de la place Sainte-Anne réputé pour ses sessions acoustiques, ses jams jazz et son ambiance conviviale.",
+    avatarUrl: "/images/events/jazz-band.jpg",
+  },
+  {
+    id: "lola",
+    name: "Lola Vance",
+    kind: "Artiste",
+    isFollowed: true,
+    followersCount: 1240,
+    genreTag: "pop",
+    bio: "Autrice-compositrice-interprète rennaise mêlant indie pop solaire, textes poétiques en français et mélodies entraînantes.",
+    avatarUrl: "/images/events/pop-singer.jpg",
+  },
+  {
+    id: "antipode",
+    name: "L'Antipode",
+    kind: "Salle",
+    isFollowed: true,
+    followersCount: 3100,
+    genreTag: "reggae",
+    address: "75 Avenue Jules Maniez, 35000 Rennes",
+    bio: "Scène majeure et tiers-lieu culturel rennais axé sur les musiques actuelles, le dub, le hip-hop et la création citoyenne.",
+    avatarUrl: "/images/events/reggae-outdoor.jpg",
+  },
+  {
+    id: "ubu",
+    name: "L'Ubu",
+    kind: "Salle",
+    mutuals: 4,
+    isFollowed: false,
+    followersCount: 4200,
+    genreTag: "electro",
+    address: "1 Rue Saint-Hélier, 35000 Rennes",
+    bio: "Le temple historique des Trans Musicales de Rennes. Une acoustique brute et une programmation défricheuse depuis plus de 30 ans.",
+    avatarUrl: "/images/events/electro-lights.jpg",
+  },
+  {
+    id: "moon",
+    name: "Møon",
+    kind: "Artiste",
+    mutuals: 3,
+    isFollowed: false,
+    followersCount: 520,
+    genreTag: "rock",
+    bio: "Quatuor rock alternatif et post-punk aux guitares acérées et riffs puissants, révélation des scènes rennaises.",
+    avatarUrl: "/images/events/rock-concert.jpg",
+  },
+  {
+    id: "barhic",
+    name: "Le Bar'Hic",
+    kind: "Bar",
+    mutuals: 2,
+    isFollowed: false,
+    followersCount: 980,
+    genreTag: "pop",
+    address: "24 Place des Lices, 35000 Rennes",
+    bio: "Institution festive des Lices, accueillant DJ sets, concerts pop-rock intimistes et scènes ouvertes hebdomadaires.",
+    avatarUrl: "/images/events/pop-singer.jpg",
+  },
+]
 
 export const initialEvents: Event[] = [
   // Semaine du 12 au 18 octobre 2026
@@ -28,7 +108,8 @@ export const initialEvents: Event[] = [
     title: "Festival Bars 'n Breizh",
     creatorId: "etage",
     tag: "rock",
-    description: "Une soirée électrique au cœur de Rennes avec trois groupes bretons (The Velvet Club, Møon, Red Harbor). Guitares, énergie live et découvertes locales au programme.",
+    description:
+      "Une soirée électrique au cœur de Rennes avec trois groupes bretons (The Velvet Club, Møon, Red Harbor). Guitares, énergie live et découvertes locales au programme.",
     color: "#f9dedf",
     textColor: "#a82f39",
     timeRange: "20h30 - 23h30",
@@ -48,7 +129,8 @@ export const initialEvents: Event[] = [
     title: "Jazz à midi",
     creatorId: "gilbert",
     tag: "jazz",
-    description: "Pause déjeuner en musique : standards bebop et acoustique feutrée au cœur du centre historique rennais.",
+    description:
+      "Pause déjeuner en musique : standards bebop et acoustique feutrée au cœur du centre historique rennais.",
     color: "#fff1bd",
     textColor: "#8b6710",
     timeRange: "12h00 - 14h00",
@@ -67,7 +149,8 @@ export const initialEvents: Event[] = [
     title: "Neon Pulse Live Session",
     creatorId: "neon",
     tag: "electro",
-    description: "Sets modulaires et visuels immersifs sous les voûtes rennaises de la mythique salle de l'Ubu.",
+    description:
+      "Sets modulaires et visuels immersifs sous les voûtes rennaises de la mythique salle de l'Ubu.",
     color: "#dce9ff",
     textColor: "#2866c3",
     timeRange: "21h00 - 01h00",
@@ -86,7 +169,8 @@ export const initialEvents: Event[] = [
     title: "Open Air & Dub Session",
     creatorId: "antipode",
     tag: "reggae",
-    description: "Session dub et reggae en plein air avec sound system local artisanal et food trucks bretons.",
+    description:
+      "Session dub et reggae en plein air avec sound system local artisanal et food trucks bretons.",
     color: "#dff3e7",
     textColor: "#277249",
     timeRange: "18h00 - 22h00",
@@ -105,7 +189,8 @@ export const initialEvents: Event[] = [
     title: "Pop Session & Release Party",
     creatorId: "lola",
     tag: "pop",
-    description: "Découverte des nouvelles voix pop alternatives de Bretagne avec Lola Vance en tête d'affiche.",
+    description:
+      "Découverte des nouvelles voix pop alternatives de Bretagne avec Lola Vance en tête d'affiche.",
     color: "#eee1f8",
     textColor: "#7140a0",
     timeRange: "20h00 - 23h00",
@@ -123,7 +208,8 @@ export const initialEvents: Event[] = [
     title: "Nuit Blanche des Bars Rock",
     creatorId: "etage",
     tag: "rock",
-    description: "Parcours de concerts live à travers les salles et bars emblématiques de Rennes.",
+    description:
+      "Parcours de concerts live à travers les salles et bars emblématiques de Rennes.",
     color: "#f9dedf",
     textColor: "#a82f39",
     timeRange: "20h00 - 02h00",
@@ -142,7 +228,8 @@ export const initialEvents: Event[] = [
     title: "Jam Session Jazz de Nuit",
     creatorId: "gilbert",
     tag: "jazz",
-    description: "Musiciens confirmés et jeunes talents du conservatoire de Rennes se retrouvent pour une session libre, chaleureuse et pleine d'improvisations.",
+    description:
+      "Musiciens confirmés et jeunes talents du conservatoire de Rennes se retrouvent pour une session libre, chaleureuse et pleine d'improvisations.",
     color: "#fff1bd",
     textColor: "#8b6710",
     timeRange: "21h00 - 00h00",
@@ -160,7 +247,8 @@ export const initialEvents: Event[] = [
     title: "Rock Garden Open Stage",
     creatorId: "etage",
     tag: "rock",
-    description: "Après-midi indie et garage rock ouvert à tous, avec jeunes formations rennaises et stands de vinyles.",
+    description:
+      "Après-midi indie et garage rock ouvert à tous, avec jeunes formations rennaises et stands de vinyles.",
     color: "#f9dedf",
     textColor: "#a82f39",
     timeRange: "16h00 - 19h00",
@@ -178,7 +266,8 @@ export const initialEvents: Event[] = [
     title: "Electric Night Rennes",
     creatorId: "neon",
     tag: "electro",
-    description: "Nuit électro underground avec sets continus de DJs locaux et scénographie lumineuse immersive.",
+    description:
+      "Nuit électro underground avec sets continus de DJs locaux et scénographie lumineuse immersive.",
     color: "#dce9ff",
     textColor: "#2866c3",
     timeRange: "22h00 - 03h00",
@@ -196,7 +285,8 @@ export const initialEvents: Event[] = [
     title: "Sunday Groove & Brunch",
     creatorId: "antipode",
     tag: "reggae",
-    description: "Brunch dominical musical, sélection 100% vinyle, boissons chaudes et ambiance chaleureuse.",
+    description:
+      "Brunch dominical musical, sélection 100% vinyle, boissons chaudes et ambiance chaleureuse.",
     color: "#dff3e7",
     textColor: "#277249",
     timeRange: "11h00 - 15h00",
@@ -216,7 +306,8 @@ export const initialEvents: Event[] = [
     title: "Warm-Up Trans Musicales",
     creatorId: "ubu",
     tag: "electro",
-    description: "Soirée électro avant-goût des Trans Musicales de Rennes à l'Ubu.",
+    description:
+      "Soirée électro avant-goût des Trans Musicales de Rennes à l'Ubu.",
     color: "#dce9ff",
     textColor: "#2866c3",
     timeRange: "22h00 - 04h00",
@@ -234,7 +325,8 @@ export const initialEvents: Event[] = [
     title: "Post-Punk Revival Night",
     creatorId: "antipode",
     tag: "rock",
-    description: "Deux groupes de post-punk rennais partagent la grande scène de l'Antipode.",
+    description:
+      "Deux groupes de post-punk rennais partagent la grande scène de l'Antipode.",
     color: "#f9dedf",
     textColor: "#a82f39",
     timeRange: "20h00 - 23h30",
@@ -245,4 +337,4 @@ export const initialEvents: Event[] = [
     imageUrl: "/images/events/rock-concert.jpg",
     isFavorite: false,
   },
-];
+]
