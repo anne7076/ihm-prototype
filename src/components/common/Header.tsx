@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react"
-import { SearchIcon, PinIcon, CloseIcon, HeartIcon } from "./Icons"
+import { SearchIcon, PinIcon, CloseIcon } from "./Icons"
 import type { Tag } from "../../types"
 import { filterAndRankFuzzy } from "../../utils/fuzzy"
 
@@ -10,6 +10,7 @@ interface HeaderProps {
     page: "home" | "creators" | "app",
     view?: "calendar" | "map",
   ) => void
+  onNavigateFavorites: () => void
   query: string
   onQueryChange: (q: string) => void
   tags?: Tag[]
@@ -22,6 +23,7 @@ export function Header({
   currentPage,
   activeView,
   onNavigatePage,
+  onNavigateFavorites,
   query,
   onQueryChange,
   tags = [],
@@ -66,7 +68,6 @@ export function Header({
   const handleSelectTag = (tagId: string) => {
     onQueryChange(`#${tagId}`)
     setIsSuggestionsOpen(false)
-    // If not on app, go to app view to see the results
     if (currentPage !== "app") {
       onNavigatePage("app", "calendar")
     }
@@ -74,8 +75,8 @@ export function Header({
 
   return (
     <header className="grid h-[74px] grid-cols-[auto_1fr_auto] items-center border-b border-[#e5e7eb] bg-white px-5 sm:px-6 gap-4 sm:gap-6 z-30">
-      {/* Logo & Navigation Principale */}
-      <div className="flex shrink-0 items-center gap-4">
+      {/* Logo & Titre (Cliquer retourne à l'accueil) */}
+      <div className="flex shrink-0 items-center">
         <button
           type="button"
           onClick={() => onNavigatePage("home")}
@@ -90,7 +91,7 @@ export function Header({
               <i className="h-4.5 w-[3.5px] rounded-full bg-white" />
             </span>
           </div>
-          <div className="hidden lg:block">
+          <div className="hidden sm:block">
             <span className="block text-[14px] font-black tracking-wide text-[#20252c] group-hover:text-[#ff4e64] transition-colors">
               AGENDA MUSIQUE
             </span>
@@ -99,32 +100,6 @@ export function Header({
             </span>
           </div>
         </button>
-
-        {/* Liens de navigation Accueil & Découvrir */}
-        <nav className="hidden md:flex items-center gap-1 border-l border-[#eef0f3] pl-3 ml-1">
-          <button
-            type="button"
-            onClick={() => onNavigatePage("home")}
-            className={`rounded-xl px-3 py-2 text-[13px] font-bold transition ${
-              currentPage === "home"
-                ? "bg-[#fff2f4] text-[#ff4e64]"
-                : "text-[#555d68] hover:bg-[#f3f4f6] hover:text-[#20252c]"
-            }`}
-          >
-            Accueil
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigatePage("creators")}
-            className={`rounded-xl px-3 py-2 text-[13px] font-bold transition ${
-              currentPage === "creators"
-                ? "bg-[#fff2f4] text-[#ff4e64]"
-                : "text-[#555d68] hover:bg-[#f3f4f6] hover:text-[#20252c]"
-            }`}
-          >
-            Créateurs
-          </button>
-        </nav>
       </div>
 
       {/* Barre de recherche avec autocomplétion intelligente */}
@@ -212,7 +187,7 @@ export function Header({
         )}
       </div>
 
-      {/* Actions & Vues : + Poster, Agenda, Map, Favoris & Profil */}
+      {/* Actions : + Poster, Agenda, Map & Profil */}
       <div className="flex items-center justify-end gap-2 sm:gap-2.5">
         {/* Bouton + Poster un événement */}
         <button
@@ -274,24 +249,6 @@ export function Header({
           <span className="hidden sm:inline">Map</span>
         </button>
 
-        {/* Icône Favoris rapide */}
-        <button
-          type="button"
-          onClick={() => onNavigatePage("app", "calendar")}
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#e5e7eb] bg-white text-[#555d68] transition hover:bg-[#f9fafb] hover:text-[#ff4e64]"
-          title={`${favoritesCount} concerts en favoris`}
-        >
-          <HeartIcon
-            filled={favoritesCount > 0}
-            className={`h-4 w-4 ${favoritesCount > 0 ? "text-[#ff4e64]" : ""}`}
-          />
-          {favoritesCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#ff4e64] px-1 text-[9px] font-extrabold text-white shadow-xs">
-              {favoritesCount}
-            </span>
-          )}
-        </button>
-
         {/* Profil utilisateur interactif */}
         <div className="relative" ref={profileRef}>
           <button
@@ -322,19 +279,41 @@ export function Header({
                 </div>
               </div>
 
+              {/* Liens interactifs vers Favoris et Créateurs */}
               <div className="mt-3 space-y-1 text-[12px]">
-                <div className="flex items-center justify-between rounded-lg px-2.5 py-2 transition hover:bg-[#f8f9fa]">
-                  <span className="text-[#555c66]">Concerts en favoris</span>
-                  <span className="rounded-full bg-[#fff0f2] px-2 py-0.5 font-bold text-[#ff4e64]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileOpen(false)
+                    onNavigateFavorites()
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-2.5 py-2.5 transition hover:bg-[#fff0f2] group text-left cursor-pointer"
+                  title="Voir les concerts en favoris"
+                >
+                  <span className="text-[12.5px] font-medium text-[#4b5563] group-hover:text-[#ff4e64]">
+                    Concerts en favoris
+                  </span>
+                  <span className="rounded-full bg-[#fff0f2] px-2 py-0.5 font-bold text-[#ff4e64] group-hover:bg-[#ff4e64] group-hover:text-white transition">
                     {favoritesCount}
                   </span>
-                </div>
-                <div className="flex items-center justify-between rounded-lg px-2.5 py-2 transition hover:bg-[#f8f9fa]">
-                  <span className="text-[#555c66]">Abonnements créateurs</span>
-                  <span className="rounded-full bg-[#f1f3f5] px-2 py-0.5 font-bold text-[#30353c]">
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileOpen(false)
+                    onNavigatePage("creators")
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-2.5 py-2.5 transition hover:bg-[#f3f4f6] group text-left cursor-pointer"
+                  title="Voir tous les abonnements créateurs"
+                >
+                  <span className="text-[12.5px] font-medium text-[#4b5563] group-hover:text-[#20252c]">
+                    Abonnements créateurs
+                  </span>
+                  <span className="rounded-full bg-[#f1f3f5] px-2 py-0.5 font-bold text-[#30353c] group-hover:bg-[#1f242c] group-hover:text-white transition">
                     {followedCount}
                   </span>
-                </div>
+                </button>
               </div>
 
               <div className="mt-3 border-t border-[#f0f2f4] pt-2 text-[11px] text-[#8e95a0]">

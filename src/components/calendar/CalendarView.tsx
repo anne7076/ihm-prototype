@@ -14,6 +14,8 @@ interface CalendarViewProps {
   selectedDayIndex: number;
   matchesQuery: (event: Event) => boolean;
   tagFilterActive: (event: Event) => boolean;
+  showOnlyFavorites?: boolean;
+  onResetFavoritesFilter?: () => void;
 }
 
 export function CalendarView({
@@ -26,6 +28,8 @@ export function CalendarView({
   selectedDayIndex,
   matchesQuery,
   tagFilterActive,
+  showOnlyFavorites = false,
+  onResetFavoritesFilter,
 }: CalendarViewProps) {
   const weekDays = getWeekDays(weekOffset);
   const weekTitle = getWeekLabel(weekOffset);
@@ -66,9 +70,26 @@ export function CalendarView({
             <ChevronIcon direction="right" />
           </button>
         </div>
-        <h1 className="text-[16px] font-bold tracking-[-0.01em] text-[#24282e]">
-          {weekTitle}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-[16px] font-bold tracking-[-0.01em] text-[#24282e]">
+            {weekTitle}
+          </h1>
+          {showOnlyFavorites && (
+            <span className="flex items-center gap-1.5 rounded-full bg-[#fff0f2] px-3 py-1 text-[11px] font-bold text-[#ff4e64]">
+              <span>♥ Favoris uniquement</span>
+              {onResetFavoritesFilter && (
+                <button
+                  type="button"
+                  onClick={onResetFavoritesFilter}
+                  className="ml-1 text-[12px] font-black hover:text-[#b82234]"
+                  title="Afficher tous les événements"
+                >
+                  ✕
+                </button>
+              )}
+            </span>
+          )}
+        </div>
         <div className="w-[72px]" aria-hidden="true" />
       </div>
 

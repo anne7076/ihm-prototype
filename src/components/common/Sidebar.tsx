@@ -1,14 +1,10 @@
 import type { Creator } from "../../types"
-
 import { initials } from "../../utils/formatters"
 
 interface SidebarProps {
   creators: Creator[]
-
   onToggleFollow: (id: string) => void
-
   onNavigateToCreators?: () => void
-
   onSelectCreator?: (creator: Creator) => void
 }
 
@@ -19,12 +15,12 @@ export function Sidebar({
   onSelectCreator,
 }: SidebarProps) {
   const followed = creators.filter((c) => c.isFollowed)
-
   const suggested = creators.filter((c) => !c.isFollowed)
 
   return (
     <aside className="flex w-[300px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6">
+        {/* Section: Mes abonnements */}
         <section>
           <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.11em] text-[#7b828c]">
             Mes abonnements ({followed.length})
@@ -35,12 +31,16 @@ export function Sidebar({
                 key={creator.id}
                 className="group flex items-center justify-between rounded-lg px-2 py-1.5 transition hover:bg-[#f8f9fa]"
               >
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eef0f2] text-[11px] font-bold text-[#5b626c]">
+                <div
+                  onClick={() => onSelectCreator?.(creator)}
+                  className="flex min-w-0 items-center gap-3 cursor-pointer flex-1"
+                  title={`Voir la fiche de ${creator.name}`}
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eef0f2] text-[11px] font-bold text-[#5b626c] group-hover:ring-2 group-hover:ring-[#ff4e64]/30 transition">
                     {initials(creator.name)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-semibold text-[#414750]">
+                    <span className="block truncate text-[13px] font-semibold text-[#414750] group-hover:text-[#ff4e64] transition">
                       {creator.name}
                     </span>
                     <span className="block text-[11px] text-[#8a9099]">
@@ -51,7 +51,7 @@ export function Sidebar({
                 <button
                   type="button"
                   onClick={() => onToggleFollow(creator.id)}
-                  className="hidden text-[11px] font-semibold text-[#9aa0a6] hover:text-[#e14456] group-hover:block"
+                  className="hidden text-[11px] font-semibold text-[#9aa0a6] hover:text-[#e14456] group-hover:block ml-2"
                   title="Ne plus suivre"
                 >
                   ✕
@@ -66,11 +66,22 @@ export function Sidebar({
           </ul>
         </section>
 
+        {/* Section: Découvrir (Cliquable pour aller à l'annuaire des créateurs) */}
         {suggested.length > 0 && (
           <section className="mt-6 rounded-xl border border-[#eef0f3] bg-[#fbfbfc] p-4">
-            <h2 className="text-[12px] font-bold uppercase tracking-[0.11em] text-[#7b828c]">
-              Découvrir
-            </h2>
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onNavigateToCreators}
+                className="group/dec flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.11em] text-[#7b828c] hover:text-[#ff4e64] transition text-left"
+                title="Découvrir l'annuaire complet des créateurs"
+              >
+                <span>Découvrir</span>
+                <span className="text-[13px] opacity-70 group-hover/dec:opacity-100 group-hover/dec:translate-x-0.5 transition-transform">
+                  →
+                </span>
+              </button>
+            </div>
             <p className="mt-1 text-[11px] text-[#9298a0]">
               Populaires parmi tes abonnements
             </p>
@@ -108,18 +119,6 @@ export function Sidebar({
               ))}
             </ul>
           </section>
-        )}
-
-        {onNavigateToCreators && (
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={onNavigateToCreators}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#e2e5e9] bg-[#f8f9fa] py-2.5 text-[12px] font-bold text-[#555d68] transition hover:bg-[#eef1f4] hover:text-[#1f242c]"
-            >
-              Explorer l'annuaire des créateurs →
-            </button>
-          </div>
         )}
       </div>
     </aside>

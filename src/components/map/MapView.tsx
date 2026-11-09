@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import { useEffect, useMemo, useRef } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { Event } from "../../types";
-import { ChevronIcon } from "../common/Icons";
 import { getWeekDays, getWeekLabel } from "../../utils/formatters";
+import { ChevronIcon } from "../common/Icons";
 
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
@@ -42,12 +43,14 @@ function createSinglePinIcon(color: string, isSelected: boolean = false) {
 
 function createClusterPinIcon(events: Event[], isSelected: boolean = false) {
   const count = events.length;
-  const uniqueColors = Array.from(new Set(events.map((e) => e.textColor))).slice(0, 4);
+  const uniqueColors = Array.from(
+    new Set(events.map((e) => e.textColor)),
+  ).slice(0, 4);
 
   const dotsHtml = uniqueColors
     .map(
       (c) =>
-        `<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background-color:${c}; border:1px solid white;"></span>`
+        `<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background-color:${c}; border:1px solid white;"></span>`,
     )
     .join("");
 
@@ -116,8 +119,14 @@ export function MapView({
   const markerRefs = useRef<Map<string, L.Marker>>(new Map());
 
   // Événements de la semaine entière
-  const weekDates = useMemo(() => new Set(weekDays.map((d) => d.dateStr)), [weekDays]);
-  const weekEvents = useMemo(() => events.filter((e) => weekDates.has(e.dateStr)), [events, weekDates]);
+  const weekDates = useMemo(
+    () => new Set(weekDays.map((d) => d.dateStr)),
+    [weekDays],
+  );
+  const weekEvents = useMemo(
+    () => events.filter((e) => weekDates.has(e.dateStr)),
+    [events, weekDates],
+  );
 
   // Événements filtrés selon le scope sélectionné (Toute la semaine vs un jour précis)
   const visibleEvents = useMemo(() => {
@@ -154,7 +163,10 @@ export function MapView({
   // Centre et zoom de la carte
   const activeCluster = useMemo(() => {
     if (!selectedEvent) return null;
-    return clusters.find((c) => c.events.some((e) => e.id === selectedEvent.id)) || null;
+    return (
+      clusters.find((c) => c.events.some((e) => e.id === selectedEvent.id)) ||
+      null
+    );
   }, [clusters, selectedEvent]);
 
   const center: [number, number] = useMemo(() => {
@@ -164,7 +176,7 @@ export function MapView({
     if (clusters.length > 0) {
       return [clusters[0].lat, clusters[0].lng];
     }
-    return [48.1113, -1.6800]; // Centre de Rennes
+    return [48.1113, -1.68]; // Centre de Rennes
   }, [activeCluster, clusters]);
 
   const zoom = activeCluster ? 15 : 13.5;
@@ -200,7 +212,9 @@ export function MapView({
               {weekLabel}
             </p>
             <span className="text-[11px] font-semibold text-[#7c838f]">
-              {visibleEvents.length} concert{visibleEvents.length > 1 ? "s" : ""} affiché{visibleEvents.length > 1 ? "s" : ""} à Rennes
+              {visibleEvents.length} concert
+              {visibleEvents.length > 1 ? "s" : ""} affiché
+              {visibleEvents.length > 1 ? "s" : ""} à Rennes
             </span>
           </div>
 
@@ -232,7 +246,9 @@ export function MapView({
           <div className="h-4 w-px bg-[#e3e6ea]" />
 
           {weekDays.map((d) => {
-            const count = weekEvents.filter((e) => e.dateStr === d.dateStr).length;
+            const count = weekEvents.filter(
+              (e) => e.dateStr === d.dateStr,
+            ).length;
             const isSelected = selectedDayIndex === d.dayIndex;
             return (
               <button
@@ -246,7 +262,9 @@ export function MapView({
                 }`}
                 title={`${d.fullDateString} (${count} événement${count > 1 ? "s" : ""})`}
               >
-                <span>{d.name.slice(0, 3)} {d.date}</span>
+                <span>
+                  {d.name.slice(0, 3)} {d.date}
+                </span>
                 {count > 0 && (
                   <span
                     className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
@@ -264,19 +282,6 @@ export function MapView({
         </div>
       </div>
 
-      {/* Bouton retour calendrier rapide */}
-      <button
-        type="button"
-        onClick={onCalendar}
-        className="absolute right-5 top-4 z-[500] flex items-center gap-2 rounded-xl border border-[#e3e6ea] bg-white px-4 py-2.5 text-[12px] font-bold text-[#343b44] shadow-md transition hover:bg-[#f8f9fa]"
-      >
-        <svg className="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="3.5" y="5.5" width="17" height="15" rx="2" stroke="currentColor" strokeWidth="1.7" />
-          <path d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        </svg>
-        Voir en calendrier
-      </button>
-
       {/* Carte Leaflet avec tuiles ESRI World Street Map (palette douce et lisible style Google Maps) */}
       <MapContainer
         center={center}
@@ -285,7 +290,7 @@ export function MapView({
         className="h-full w-full z-0"
       >
         <TileLayer
-          attribution='Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom'
+          attribution="Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom"
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
           maxZoom={19}
         />
@@ -384,12 +389,16 @@ export function MapView({
                               <span className="text-[10px] font-bold uppercase tracking-wider text-[#818894]">
                                 #{evt.tag}
                               </span>
-                              <span className="text-[10px] text-[#9ba1aa]">· {evt.dateStr.slice(5)}</span>
+                              <span className="text-[10px] text-[#9ba1aa]">
+                                · {evt.dateStr.slice(5)}
+                              </span>
                             </div>
                             <h4 className="mt-0.5 truncate text-[12px] font-bold text-[#30353c]">
                               {evt.title}
                             </h4>
-                            <p className="text-[11px] text-[#737a85]">{evt.timeRange}</p>
+                            <p className="text-[11px] text-[#737a85]">
+                              {evt.timeRange}
+                            </p>
                           </div>
                           <button
                             type="button"

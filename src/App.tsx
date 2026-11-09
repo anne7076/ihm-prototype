@@ -49,6 +49,7 @@ export default function App() {
   })
 
   const [activeTags, setActiveTags] = useState<string[]>([])
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false)
   const [query, setQuery] = useState("")
   const [selectedEventId, setSelectedEventId] = useState<string>("evt-velvet")
   const [selectedCreatorId, setSelectedCreatorId] = useState<string | null>(
@@ -171,6 +172,7 @@ export default function App() {
   }
 
   const tagFilterActive = (event: Event): boolean => {
+    if (showOnlyFavorites && !event.isFavorite) return false
     if (event.multiple) return true
     if (activeTags.length === 0) return true
     const allTags = [event.tag, ...(event.secondaryTags || [])]
@@ -180,8 +182,13 @@ export default function App() {
   // Filtrage combiné des événements avec recherche floue en direct
   const filteredEvents = useMemo(
     () => events.filter((e) => tagFilterActive(e) && matchesQuery(e)),
-    [events, activeTags, query, creatorById],
+    [events, activeTags, query, creatorById, showOnlyFavorites],
   )
+
+  const handleNavigateFavorites = () => {
+    setShowOnlyFavorites(true)
+    handleNavigatePage("app", "calendar")
+  }
 
   // Jours de la semaine courante
   const currentWeekDays = useMemo(() => getWeekDays(weekOffset), [weekOffset])
@@ -306,6 +313,7 @@ export default function App() {
         currentPage={activePage}
         activeView={activeView}
         onNavigatePage={handleNavigatePage}
+        onNavigateFavorites={handleNavigateFavorites}
         query={query}
         onQueryChange={setQuery}
         tags={tags}
@@ -381,6 +389,8 @@ export default function App() {
                 }}
                 matchesQuery={matchesQuery}
                 tagFilterActive={tagFilterActive}
+                showOnlyFavorites={showOnlyFavorites}
+                onResetFavoritesFilter={() => setShowOnlyFavorites(false)}
                 onSelectEvent={handleSelectEvent}
               />
             )}
