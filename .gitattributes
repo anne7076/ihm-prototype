@@ -109,6 +109,7 @@
 *.accdb              filter=lfs diff=lfs merge=lfs -text
 # Exempt local SQLite databases from LFS so they commit directly
 data/*.db            -filter -diff -merge binary
+public/*.db          -filter -diff -merge binary
 
 # ---------------------------------------------------------------------------
 # Executables & Libraries

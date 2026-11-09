@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react"
 import { SearchIcon, PinIcon, CloseIcon } from "./Icons"
 import type { Tag } from "../../types"
 import { filterAndRankFuzzy } from "../../utils/fuzzy"
+import { reloadDatabaseFromDisk } from "../../db"
 
 interface HeaderProps {
   currentPage: "home" | "creators" | "app"
@@ -316,9 +317,25 @@ export function Header({
                 </button>
               </div>
 
-              <div className="mt-3 border-t border-[#f0f2f4] pt-2 text-[11px] text-[#8e95a0]">
-                <p>Agenda Musical de Rennes v3.0</p>
-                <p className="text-[10px]">Base SQLite locale active</p>
+              <div className="mt-3 border-t border-[#f0f2f4] pt-2 flex items-center justify-between text-[11px] text-[#8e95a0]">
+                <div>
+                  <p>Agenda Musical v3.0</p>
+                  <p className="text-[10px] text-[#555d68]">
+                    Base agenda.db active
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsProfileOpen(false)
+                    await reloadDatabaseFromDisk()
+                    window.location.reload()
+                  }}
+                  className="rounded-lg border border-[#e2e5e9] bg-[#f8f9fa] px-2 py-1 text-[10.5px] font-bold text-[#555d68] hover:bg-[#eef1f4] hover:text-[#ff4e64] transition"
+                  title="Recharger la base agenda.db depuis le fichier"
+                >
+                  ⟳ Recharger agenda.db
+                </button>
               </div>
             </div>
           )}
