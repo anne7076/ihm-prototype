@@ -79,6 +79,7 @@ export default function App() {
   const [creators, setCreators] = useState<Creator[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   // Synchronisation avec l'historique du navigateur
   useEffect(() => {
@@ -122,7 +123,7 @@ export default function App() {
     }
   }
 
-  // Chargement initial depuis la base SQLite
+  // Chargement initial depuis Supabase
   useEffect(() => {
     async function loadData() {
       try {
@@ -135,7 +136,12 @@ export default function App() {
         setCreators(loadedCreators)
         setEvents(loadedEvents)
       } catch (err) {
-        console.error("Échec du chargement des données SQLite:", err)
+        console.error("Échec du chargement depuis Supabase:", err)
+        setLoadError(
+          err instanceof Error
+            ? err.message
+            : "Impossible de charger les données depuis Supabase.",
+        )
       } finally {
         setIsLoading(false)
       }
@@ -299,8 +305,28 @@ export default function App() {
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#ff4e64] border-t-transparent" />
           <p className="text-[13px] font-semibold text-[#555d68]">
-            Chargement de la base de données SQLite...
+            Chargement depuis Supabase...
           </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#f7f8fa] p-6">
+        <div className="max-w-md rounded-2xl border border-[#ffd2d8] bg-white p-6 text-center shadow-sm">
+          <h2 className="text-[16px] font-bold text-[#20242b]">
+            Connexion Supabase impossible
+          </h2>
+          <p className="mt-2 text-[13px] text-[#555d68]">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-xl bg-[#ff4e64] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#f23f56]"
+          >
+            Réessayer
+          </button>
         </div>
       </div>
     )
