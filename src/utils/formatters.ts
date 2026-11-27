@@ -10,8 +10,8 @@ export function initials(name: string): string {
 }
 
 // Calcul dynamique des jours d'une semaine selon un décalage (offset en semaines)
-// Semaine de référence (offset 0) : Lundi 12 au Dimanche 18 octobre 2026
-export const BASE_MONDAY = new Date(2026, 9, 12, 0, 0, 0, 0); // Mois 9 = octobre 2026
+// Semaine de référence (offset 0) : Lundi 2 au Dimanche 8 novembre 2026
+export const BASE_MONDAY = new Date(2026, 10, 2, 0, 0, 0, 0); // Mois 10 = novembre 2026
 
 export const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 export const MONTH_NAMES = [
