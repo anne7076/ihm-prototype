@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { Event } from "../../types";
 import { getWeekDays, getWeekLabel } from "../../utils/formatters";
@@ -117,6 +117,7 @@ export function MapView({
   const weekDays = useMemo(() => getWeekDays(weekOffset), [weekOffset]);
   const weekLabel = useMemo(() => getWeekLabel(weekOffset), [weekOffset]);
   const markerRefs = useRef<Map<string, L.Marker>>(new Map());
+  const [isDayFilterOpen, setIsDayFilterOpen] = useState(false);
 
   // Événements de la semaine entière
   const weekDates = useMemo(
@@ -207,16 +208,38 @@ export function MapView({
             <ChevronIcon direction="left" />
           </button>
 
-          <div className="min-w-[260px] text-center">
-            <p className="text-[14px] font-bold tracking-[-0.01em] text-[#242930]">
-              {weekLabel}
+          <button
+            type="button"
+            onClick={() => setIsDayFilterOpen((prev) => !prev)}
+            className="min-w-[240px] rounded-xl px-3 py-1 text-center transition hover:bg-[#f6f7f9] cursor-pointer"
+            aria-expanded={isDayFilterOpen}
+            title="Afficher ou masquer le filtre par jour"
+          >
+            <p className="flex items-center justify-center gap-1.5 text-[14px] font-bold tracking-[-0.01em] text-[#242930]">
+              <span>{weekLabel}</span>
+              <svg
+                className={`h-3.5 w-3.5 text-[#7c838f] transition-transform duration-200 ${
+                  isDayFilterOpen ? "rotate-180" : ""
+                }`}
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </p>
             <span className="text-[11px] font-semibold text-[#7c838f]">
+              {selectedDayIndex !== null && weekDays[selectedDayIndex]
+                ? `${weekDays[selectedDayIndex].name.slice(0, 3)} ${weekDays[selectedDayIndex].date} · `
+                : ""}
               {visibleEvents.length} concert
-              {visibleEvents.length > 1 ? "s" : ""} affiché
-              {visibleEvents.length > 1 ? "s" : ""} à Rennes
+              {visibleEvents.length > 1 ? "s" : ""}
             </span>
-          </div>
+          </button>
 
           <button
             type="button"
@@ -229,57 +252,59 @@ export function MapView({
           </button>
         </div>
 
-        {/* Pilules de filtrage temporel : Toute la semaine vs jours individuels */}
-        <div className="flex items-center gap-1.5 rounded-xl border border-[#e2e5e9] bg-white/95 p-1.5 shadow-[0_6px_20px_rgba(25,30,36,0.10)] backdrop-blur-md">
-          <button
-            type="button"
-            onClick={() => onSelectDay(null)}
-            className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition ${
-              selectedDayIndex === null
-                ? "bg-[#ff4e64] text-white shadow-xs"
-                : "text-[#58606c] hover:bg-[#f1f3f5] hover:text-[#20242b]"
-            }`}
-          >
-            Toute la semaine ({weekEvents.length})
-          </button>
+        {/* Pilules de filtrage temporel (affichées au clic sur "Semaine du ...") */}
+        {isDayFilterOpen && (
+          <div className="flex items-center gap-1.5 rounded-xl border border-[#e2e5e9] bg-white/95 p-1.5 shadow-[0_6px_20px_rgba(25,30,36,0.10)] backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => onSelectDay(null)}
+              className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition ${
+                selectedDayIndex === null
+                  ? "bg-[#ff4e64] text-white shadow-xs"
+                  : "text-[#58606c] hover:bg-[#f1f3f5] hover:text-[#20242b]"
+              }`}
+            >
+              Toute la semaine ({weekEvents.length})
+            </button>
 
-          <div className="h-4 w-px bg-[#e3e6ea]" />
+            <div className="h-4 w-px bg-[#e3e6ea]" />
 
-          {weekDays.map((d) => {
-            const count = weekEvents.filter(
-              (e) => e.dateStr === d.dateStr,
-            ).length;
-            const isSelected = selectedDayIndex === d.dayIndex;
-            return (
-              <button
-                key={d.dateStr}
-                type="button"
-                onClick={() => onSelectDay(d.dayIndex)}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition ${
-                  isSelected
-                    ? "bg-[#282d35] text-white shadow-xs"
-                    : "text-[#58606c] hover:bg-[#f1f3f5] hover:text-[#20242b]"
-                }`}
-                title={`${d.fullDateString} (${count} événement${count > 1 ? "s" : ""})`}
-              >
-                <span>
-                  {d.name.slice(0, 3)} {d.date}
-                </span>
-                {count > 0 && (
-                  <span
-                    className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
-                      isSelected
-                        ? "bg-white text-[#282d35]"
-                        : "bg-[#ff4e64]/12 text-[#e23f54]"
-                    }`}
-                  >
-                    {count}
+            {weekDays.map((d) => {
+              const count = weekEvents.filter(
+                (e) => e.dateStr === d.dateStr,
+              ).length;
+              const isSelected = selectedDayIndex === d.dayIndex;
+              return (
+                <button
+                  key={d.dateStr}
+                  type="button"
+                  onClick={() => onSelectDay(d.dayIndex)}
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                    isSelected
+                      ? "bg-[#282d35] text-white shadow-xs"
+                      : "text-[#58606c] hover:bg-[#f1f3f5] hover:text-[#20242b]"
+                  }`}
+                  title={`${d.fullDateString} (${count} événement${count > 1 ? "s" : ""})`}
+                >
+                  <span>
+                    {d.name.slice(0, 3)} {d.date}
                   </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                  {count > 0 && (
+                    <span
+                      className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
+                        isSelected
+                          ? "bg-white text-[#282d35]"
+                          : "bg-[#ff4e64]/12 text-[#e23f54]"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Carte Leaflet avec tuiles ESRI World Street Map (palette douce et lisible style Google Maps) */}

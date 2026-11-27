@@ -43,8 +43,8 @@ export function TrendingCarousel({
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-[#ff4e64] animate-pulse" />
-          <h3 className="text-[14px] font-extrabold uppercase tracking-wider text-[#222730]">
-            Événements tendance à venir
+          <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-[#222730]">
+            Tendances à venir
           </h3>
         </div>
         <span className="rounded-full bg-[#fff0f2] px-2.5 py-0.5 text-[11px] font-bold text-[#ff4e64]">
@@ -81,14 +81,8 @@ export function TrendingCarousel({
 
         {/* Informations de base sur le bas de l'image */}
         <div className="absolute bottom-4 left-4 right-4 text-white">
-          <div className="flex items-center gap-2 text-[12px] font-semibold text-white/80 mb-1">
-            <span>{currentEvent.hour}</span>
-            {currentEvent.timeRange && (
-              <>
-                <span>•</span>
-                <span>{currentEvent.timeRange}</span>
-              </>
-            )}
+          <div className="text-[12px] font-semibold text-white/85 mb-1">
+            {currentEvent.timeRange || currentEvent.hour}
           </div>
 
           <h4 className="text-xl sm:text-2xl font-black leading-snug drop-shadow-md group-hover:text-[#ff94a2] transition-colors">

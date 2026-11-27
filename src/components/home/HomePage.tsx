@@ -42,28 +42,18 @@ export function HomePage({
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 space-y-10">
         {/* HERO SECTION : Présentation et Événements Tendance CÔTE À CÔTE */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* Côté Gauche : Description de l'application & 3 Piliers */}
+          {/* Côté Gauche : Description concise & 3 Piliers */}
           <div className="lg:col-span-7 flex flex-col justify-between rounded-3xl border border-[#e5e7eb] bg-white p-7 sm:p-9 shadow-[0_8px_30px_rgba(20,25,35,0.05)]">
             <div>
-              <span className="inline-block rounded-full bg-[#ff4e64]/10 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-[#ff4e64] mb-3">
-                Agenda Collaboratif · Rennes
-              </span>
-
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1a1f27] leading-tight">
                 Participez à la vie{" "}
                 <span className="text-[#ff4e64]">musicale</span> rennaise !
               </h1>
 
-              <p className="mt-3 text-[14.5px] text-[#555d68] leading-relaxed">
-                La plateforme collaborative pour vivre au rythme des concerts,
-                découvrir les talents locaux et faire vibrer les scènes, bars et
-                festivals de Rennes Métropole.
-              </p>
-
-              {/* 3 Piliers avec icônes SVG soignées (pas d'emojis) */}
-              <div className="mt-6 space-y-3">
-                <div className="flex items-start gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] p-3.5 transition hover:border-[#ff4e64]/30 hover:bg-white">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0f2] text-[#ff4e64]">
+              {/* 3 Piliers concis avec icônes SVG */}
+              <div className="mt-7 space-y-3">
+                <div className="flex items-center gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] px-4 py-3.5 transition hover:border-[#ff4e64]/30 hover:bg-white">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#fff0f2] text-[#ff4e64]">
                     <svg
                       className="h-5 w-5"
                       viewBox="0 0 24 24"
@@ -77,19 +67,13 @@ export function HomePage({
                       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                     </svg>
                   </div>
-                  <div>
-                    <h4 className="text-[13.5px] font-bold text-[#1e232b]">
-                      Alertes & favoris
-                    </h4>
-                    <p className="mt-0.5 text-[12px] text-[#6b7280] leading-snug">
-                      Soyez prévenu des concerts de vos artistes et de vos
-                      salles préférés.
-                    </p>
-                  </div>
+                  <p className="text-[14px] font-semibold text-[#1e232b]">
+                    Alertes sur vos artistes et salles favoris
+                  </p>
                 </div>
 
-                <div className="flex items-start gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] p-3.5 transition hover:border-[#4e8ff7]/30 hover:bg-white">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef4ff] text-[#4e8ff7]">
+                <div className="flex items-center gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] px-4 py-3.5 transition hover:border-[#4e8ff7]/30 hover:bg-white">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eef4ff] text-[#4e8ff7]">
                     <svg
                       className="h-5 w-5"
                       viewBox="0 0 24 24"
@@ -104,19 +88,13 @@ export function HomePage({
                       <circle cx="18" cy="16" r="3" />
                     </svg>
                   </div>
-                  <div>
-                    <h4 className="text-[13.5px] font-bold text-[#1e232b]">
-                      Découverte locale
-                    </h4>
-                    <p className="mt-0.5 text-[12px] text-[#6b7280] leading-snug">
-                      Explorez la scène indépendante, les scènes underground et
-                      les nouveaux talents.
-                    </p>
-                  </div>
+                  <p className="text-[14px] font-semibold text-[#1e232b]">
+                    Découverte des scènes et talents rennais
+                  </p>
                 </div>
 
-                <div className="flex items-start gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] p-3.5 transition hover:border-[#55ae78]/30 hover:bg-white">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eff9f3] text-[#55ae78]">
+                <div className="flex items-center gap-3.5 rounded-2xl border border-[#f0f2f5] bg-[#fafbfc] px-4 py-3.5 transition hover:border-[#55ae78]/30 hover:bg-white">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eff9f3] text-[#55ae78]">
                     <svg
                       className="h-5 w-5"
                       viewBox="0 0 24 24"
@@ -134,15 +112,9 @@ export function HomePage({
                       <line x1="10" y1="16" x2="14" y2="16" />
                     </svg>
                   </div>
-                  <div>
-                    <h4 className="text-[13.5px] font-bold text-[#1e232b]">
-                      Poster vos concerts
-                    </h4>
-                    <p className="mt-0.5 text-[12px] text-[#6b7280] leading-snug">
-                      Ajoutez gratuitement vos propres événements avec adresse
-                      GPS certifiée.
-                    </p>
-                  </div>
+                  <p className="text-[14px] font-semibold text-[#1e232b]">
+                    Partage libre de vos concerts
+                  </p>
                 </div>
               </div>
             </div>
@@ -154,7 +126,7 @@ export function HomePage({
                 onClick={onNavigateToAgenda}
                 className="flex items-center gap-2 rounded-xl bg-[#ff4e64] px-5 py-3 text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,78,100,0.28)] transition hover:bg-[#f23f56]"
               >
-                Explorer l'Agenda en direct →
+                Voir l'Agenda →
               </button>
               <button
                 type="button"
@@ -177,26 +149,18 @@ export function HomePage({
         </section>
 
         {/* SECTION CRÉATEURS : "Découvrir des créateurs" avec recherche incrustée */}
-        <section className="space-y-6 rounded-3xl border border-[#e5e7eb] bg-white p-6 sm:p-9 shadow-[0_8px_30px_rgba(20,25,35,0.04)]">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-            <div>
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#ff4e64]">
-                Communauté & Lieux
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#1e232b]">
-                Découvrir des créateurs rennais
-              </h2>
-              <p className="mt-1 text-[13.5px] text-[#6b7280]">
-                Artistes, scènes mythiques et bars musicaux de la métropole.
-              </p>
-            </div>
+        <section className="space-y-5 rounded-3xl border border-[#e5e7eb] bg-white p-6 sm:p-8 shadow-[0_8px_30px_rgba(20,25,35,0.04)]">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xl sm:text-2xl font-black text-[#1e232b]">
+              Découvrir des créateurs
+            </h2>
 
             <button
               type="button"
               onClick={() => onNavigateToCreators()}
-              className="flex items-center gap-1.5 self-start md:self-end text-[13px] font-bold text-[#ff4e64] hover:underline"
+              className="flex items-center gap-1.5 text-[13px] font-bold text-[#ff4e64] hover:underline"
             >
-              Explorer tous les créateurs ({creators.length}) →
+              Tout voir ({creators.length}) →
             </button>
           </div>
 
@@ -206,7 +170,7 @@ export function HomePage({
               <SearchIcon className="h-4.5 w-4.5 text-[#8b929c]" />
               <input
                 type="text"
-                placeholder="Rechercher un artiste, une salle ou un bar rennais (ex: L'Ubu, Neon Pulse, L'Antipode)..."
+                placeholder="Rechercher un artiste, une salle ou un bar..."
                 value={creatorSearchQuery}
                 onChange={(e) => setCreatorSearchQuery(e.target.value)}
                 className="w-full bg-transparent px-3 py-2.5 text-[14px] text-[#222730] outline-none placeholder:text-[#9aa0a6]"
@@ -246,14 +210,9 @@ export function HomePage({
           </div>
         </section>
 
-        {/* Footer simple et sobre */}
-        <footer className="border-t border-[#e5e7eb] pt-6 text-center text-[12px] text-[#8e95a0]">
-          <p className="font-semibold text-[#555d68]">
-            Agenda Musical Collaboratif – Rennes Métropole
-          </p>
-          <p className="mt-0.5">
-            Projet IHM · INSA Rennes · Base SQLite locale
-          </p>
+        {/* Footer sobre */}
+        <footer className="border-t border-[#e5e7eb] pt-5 text-center text-[12px] text-[#8e95a0]">
+          Agenda Musique · Rennes
         </footer>
       </div>
     </div>

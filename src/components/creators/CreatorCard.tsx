@@ -81,7 +81,7 @@ export function CreatorCard({
           >
             <div className="min-w-0 flex-1">
               <span className="block font-extrabold text-[#ff4e64] text-[9.5px] uppercase tracking-wider">
-                Prochain concert
+                À venir
               </span>
               <span className="truncate block font-semibold text-[#20252c] text-[12px]">
                 {upcomingEvent.title}
@@ -93,7 +93,7 @@ export function CreatorCard({
           </div>
         ) : (
           <div className="rounded-xl bg-[#f8f9fa] p-2 px-3 text-[11px] text-[#8e95a0]">
-            Aucun concert cette semaine
+            Aucun concert prévu
           </div>
         )}
 

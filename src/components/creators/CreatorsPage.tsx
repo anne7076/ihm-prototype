@@ -69,18 +69,11 @@ export function CreatorsPage({
   return (
     <div className="h-full overflow-y-auto bg-[#f8f9fa] text-[#20242b]">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 space-y-8">
-        {/* Titre et en-tête de la page (style Dribbble Discover) */}
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-[12px] font-bold uppercase tracking-wider text-[#ff4e64]">
-            Scène locale & Annuaire
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black text-[#1e232b]">
-            Découvrir les créateurs de Rennes
+        {/* Titre et en-tête épurés */}
+        <div className="text-center max-w-xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#1e232b]">
+            Créateurs à Rennes
           </h1>
-          <p className="text-[15px] text-[#6b7280]">
-            Suivez vos artistes favoris, découvrez les salles emblématiques et
-            soutenez les bars et organisateurs de la métropole.
-          </p>
         </div>
 
         {/* Barre de recherche principale */}
@@ -89,7 +82,7 @@ export function CreatorsPage({
             <SearchIcon className="h-5 w-5 text-[#8b929c]" />
             <input
               type="text"
-              placeholder="Rechercher par nom, style musical, adresse (ex: Ubu, Rock, Jazz)..."
+              placeholder="Rechercher un artiste, une salle ou un bar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-transparent px-3 py-2 text-[14px] text-[#222730] outline-none placeholder:text-[#9aa0a6]"
@@ -180,20 +173,19 @@ export function CreatorsPage({
                   onSelectCreator={onSelectCreator}
                   onToggleFollow={onToggleFollow}
                   onSelectEvent={onSelectEvent}
-                  compact={false}
+                  compact={true}
                 />
               )
             })}
           </div>
         ) : (
-          <div className="rounded-3xl border border-dashed border-[#d1d5db] bg-white py-16 text-center text-[#6b7280]">
-            <span className="text-4xl">🔍</span>
-            <h3 className="mt-3 text-[17px] font-bold text-[#1f242c]">
+          <div className="rounded-3xl border border-dashed border-[#d1d5db] bg-white py-14 text-center text-[#6b7280]">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3f4f6] text-[#8b929c]">
+              <SearchIcon className="h-6 w-6" />
+            </div>
+            <h3 className="mt-3 text-[16px] font-bold text-[#1f242c]">
               Aucun créateur trouvé
             </h3>
-            <p className="mt-1 text-[13px] text-[#8e95a0]">
-              Aucun résultat pour « {search} » dans cette catégorie.
-            </p>
             <button
               type="button"
               onClick={() => {
@@ -202,7 +194,7 @@ export function CreatorsPage({
               }}
               className="mt-4 rounded-xl bg-[#ff4e64] px-4 py-2 text-[12px] font-bold text-white hover:bg-[#f23f56] transition"
             >
-              Réinitialiser les filtres
+              Réinitialiser
             </button>
           </div>
         )}
